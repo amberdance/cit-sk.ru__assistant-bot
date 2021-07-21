@@ -1,4 +1,3 @@
-from sqlalchemy.orm.session import Session
 from .BaseTable import BaseTable
 from ..models.UserModel import UserModel
 from ..context.TelegramBotDbContext import TelegramBotDbContext

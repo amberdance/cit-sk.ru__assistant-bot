@@ -1,5 +1,4 @@
-from telebot import TeleBot
-from .BaseController import BaseController
+from .BaseController import BaseController, TeleBot
 
 
 class CommonCommandsController(BaseController):
