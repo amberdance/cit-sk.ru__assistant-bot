@@ -1,4 +1,4 @@
-from typing import Any, overload
+from typing import Any
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine.base import Connection, Engine
 from sqlalchemy.orm.session import Session, sessionmaker

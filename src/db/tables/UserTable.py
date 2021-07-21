@@ -8,7 +8,7 @@ class UserTable(BaseTable):
 
     @staticmethod
     def addUser(user: UserModel) -> UserModel:
-        BaseTable._insertSingleRow(
+        BaseTable.insertSingleRow(
             user, TelegramBotDbContext().getSession())
 
         return user
