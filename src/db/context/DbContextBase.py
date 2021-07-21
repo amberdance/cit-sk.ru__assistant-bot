@@ -1,16 +1,24 @@
-from typing import Any
+from typing import Any, overload
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine.base import Connection, Engine
 from sqlalchemy.orm.session import Session, sessionmaker
 
 
 class DbContextBase:
-    _engine = None
-    _connection = None
-    _session = None
 
-    def __init__(self, host, login, password, db) -> None:
-        if self._engine is None:
+    _engine: Engine = None
+    _connection: Connection = None
+    _session: Session = None
+
+    # To do: подумать над аргументом context, нужен или нет.
+    def __init__(self, host: str = None, login: str = None, password: str = None, db: str = None, context: str = None) -> None:
+        if context is not None:
+            config = self.__getDatabaseConfig(context)
+
+            self._engine = create_engine(
+                f'postgresql+psycopg2://{config["LOGIN"]}:{config["PASSWORD"]}@{config["HOST"]}/{config["DB"]}')
+
+        else:
             self._engine = create_engine(
                 f'postgresql+psycopg2://{login}:{password}@{host}/{db}')
 
@@ -18,7 +26,7 @@ class DbContextBase:
             self._connection = self._engine.connect()
 
         if self._session is None:
-            Session = sessionmaker()
+            Session = sessionmaker(expire_on_commit=False)
             Session.configure(bind=self._engine)
             self._session = Session()
 
@@ -41,3 +49,13 @@ class DbContextBase:
 
     def rawQuery(self, queryString) -> Any:
         return self._connection.execute(text(queryString)).fetchall()
+
+    @staticmethod
+    def __getDatabaseConfig(context: str) -> dict:
+        from config import TELEGRAMBOT_DB, ASSISTANT_DB
+
+        if context == "telegram":
+            return TELEGRAMBOT_DB
+
+        if context == "assistant":
+            return ASSISTANT_DB

@@ -1,26 +1,27 @@
 from telebot import TeleBot
 from config import BOT_TOKEN
-from db.AssistantDbContext import AssistantDbContext
-from .commands.CommonCommands import CommonCommands
-from .commands.DatabaseCommands import DatabaseCommands
-from .commands.ServiceCommands import ServiceCommands
+from .controllers.CommonCommandsController import CommonCommandsController
+from .controllers.DatabaseCommandsController import DatabaseCommandsController
+from .controllers.ServiceCommandsController import ServiceCommandsController
 
 
-class AssistantBotHandler(AssistantDbContext, CommonCommands, DatabaseCommands):
+class AssistantBotHandler(CommonCommandsController, DatabaseCommandsController, ServiceCommandsController):
 
-    __telebot = None
-    __assistantDatabase = None
+    __telebot: TeleBot = None
+    # To do: проработать вопрос с контекстами бд
+    __assistantDbCntext = None
+    __telegramDbContext = None
 
-    def __init__(self,  noneStopPolling=True, interval=0, timeout=20):
+    def __init__(self,  noneStopPolling: bool = True, interval: int = 0, timeout: int = 20) -> None:
         self.__telebot = TeleBot(BOT_TOKEN)
-        # self.__assistantDatabase = AssistantDbContext()
 
-        self.initializeCommandsListener()
+        self.initializeControllers()
         self.__telebot.polling(none_stop=noneStopPolling,
                                interval=interval, timeout=timeout)
 
-    def initializeCommandsListener(self):
-        CommonCommands.initializeMessageHandler(self.__telebot)
-        ServiceCommands.initializeMessageHandler(self.__telebot)
-        DatabaseCommands.initializeMessageHandler(
-            self.__telebot, self.__assistantDatabase)
+    def initializeControllers(self) -> None:
+        # To do: обернуть в цикл
+        CommonCommandsController.initializeMessageHandler(self.__telebot)
+        ServiceCommandsController.initializeMessageHandler(self.__telebot)
+        DatabaseCommandsController.initializeMessageHandler(
+            self.__telebot, self.__assistantDbCntext)

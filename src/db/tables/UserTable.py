@@ -1,3 +1,4 @@
+from sqlalchemy.orm.session import Session
 from .BaseTable import BaseTable
 from ..models.UserModel import UserModel
 from ..context.TelegramBotDbContext import TelegramBotDbContext
@@ -6,6 +7,8 @@ from ..context.TelegramBotDbContext import TelegramBotDbContext
 class UserTable(BaseTable):
 
     @staticmethod
-    def addUser(user: UserModel) -> None:
+    def addUser(user: UserModel) -> UserModel:
         BaseTable._insertSingleRow(
             user, TelegramBotDbContext().getSession())
+
+        return user
