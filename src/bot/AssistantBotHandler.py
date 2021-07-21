@@ -1,19 +1,19 @@
 from telebot import TeleBot
 from config import BOT_TOKEN
-# from dbLayer.AssistantDb import AssistantDb
+from db.AssistantDbContext import AssistantDbContext
 from .commands.CommonCommands import CommonCommands
 from .commands.DatabaseCommands import DatabaseCommands
 from .commands.ServiceCommands import ServiceCommands
 
 
-class AssistantBotHandler(AssistantDb, CommonCommands, DatabaseCommands):
+class AssistantBotHandler(AssistantDbContext, CommonCommands, DatabaseCommands):
 
     __telebot = None
     __assistantDatabase = None
 
     def __init__(self,  noneStopPolling=True, interval=0, timeout=20):
         self.__telebot = TeleBot(BOT_TOKEN)
-        # self.__assistantDatabase = AssistantDb()
+        # self.__assistantDatabase = AssistantDbContext()
 
         self.initializeCommandsListener()
         self.__telebot.polling(none_stop=noneStopPolling,

@@ -1,4 +1,4 @@
-BOT_DB = {
+TELEGRAMBOT_DB = {
     "DB": "telegrambot",
     "HOST": "127.0.0.1",
     "PORT": 5432,
