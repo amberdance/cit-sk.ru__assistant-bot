@@ -15,10 +15,6 @@ class HTTPServer:
     __app: Application = web.Application()
     __telebot: telebot.TeleBot = telebot.TeleBot(BOT_TOKEN)
 
-    # To do: проработать вопрос с контекстами бд
-    __assistantDbCntext = None
-    __telegramDbContext = None
-
     def __init__(self, botLoggingLevel: logging = logging.INFO, httpServerLoggingLevel: logging = logging.INFO) -> None:
         logging.basicConfig(level=botLoggingLevel)
         telebot.logger.setLevel(httpServerLoggingLevel)
@@ -46,5 +42,4 @@ class HTTPServer:
         # To do: обернуть в цикл
         CommonCommandsController.initializeMessageHandler(self.__telebot)
         ServiceCommandsController.initializeMessageHandler(self.__telebot)
-        DatabaseCommandsController.initializeMessageHandler(
-            self.__telebot, self.__assistantDbCntext)
+        DatabaseCommandsController.initializeMessageHandler(self.__telebot)

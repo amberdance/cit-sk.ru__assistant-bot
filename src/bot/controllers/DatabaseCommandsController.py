@@ -8,7 +8,7 @@ from telebot import TeleBot
 class DatabaseCommandsController(BaseController):
 
     @staticmethod
-    def initializeMessageHandler(bot: TeleBot, dbConnection: DbContextBase) -> None:
+    def initializeMessageHandler(bot: TeleBot) -> None:
         @bot.message_handler(commands=['registration', 'reg'])
         def registerUserCommand(message):
             bot.reply_to(message, "status ok")

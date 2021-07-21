@@ -1,5 +1,6 @@
 from typing import overload
 from sqlalchemy.orm import Session
+from db.context.DbContextBase import DbContextBase
 
 
 class BaseTable:
@@ -13,8 +14,6 @@ class BaseTable:
     @staticmethod
     @overload
     def insertSingleRow(mappedClass: object, dbContext: str) -> None:
-        from db.context.DbContextBase import DbContextBase
-
         session = DbContextBase(context=dbContext).getSession()
         session.add(mappedClass)
         session.commit()
