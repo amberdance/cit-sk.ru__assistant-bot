@@ -1,3 +1,4 @@
+import re
 from db.models.ChatUserModel import Base, ChatUserModel
 from db.tables.ChatUserTable import ChatUserTable
 from .BaseController import BaseController, TeleBot
@@ -31,6 +32,7 @@ class DatabaseCommandsController(BaseController):
                 errorMsg = "К сожалению, не удалось вас зарегистрировать, попробуйте еще раз" if IS_DEBUG_MODE is False else error
                 BaseController.sendMessage(bot, message, errorMsg)
 
-        @bot.message_handler(commands=['debugmsg'])
-        def debugMessage(message):
-            BaseController.sendMessage(bot, message, message)
+        @bot.message_handler(regexp="task")
+        def getTaskCommand(message):
+            BaseController.sendMessage(
+                bot, message, re.findall("\d", message.text))

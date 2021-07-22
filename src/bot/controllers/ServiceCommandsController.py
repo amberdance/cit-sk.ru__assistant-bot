@@ -10,3 +10,7 @@ class ServiceCommandsController(BaseController):
         def getUserIdCommand(message) -> None:
             bot.reply_to(
                 message, f'Ваш ID: {message.from_user.id}')
+
+        @bot.message_handler(commands=['debugmsg'])
+        def debugMessage(message):
+            BaseController.sendMessage(bot, message, message)
