@@ -11,6 +11,7 @@ class ChatUserModel(Base):
 
     id: int = Column('id', Integer(), primary_key=True, autoincrement=True)
     astUserId: int = Column('astUserId', Integer, nullable=False)
+    chatId: int = Column('chatId', Integer, nullable=False)
     chatUserId: int = Column('chatUserId', Integer, nullable=False)
     created: datetime = Column('created', DateTime(
         timezone=True), default=datetime.utcnow())

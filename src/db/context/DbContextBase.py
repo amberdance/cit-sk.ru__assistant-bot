@@ -60,7 +60,7 @@ class DbContextBase:
 
     def __createSession(self) -> None:
         if self._session is None:
-            Session = sessionmaker(expire_on_commit=False)
+            Session = sessionmaker()
             Session.configure(bind=self._engine)
             self._session = Session()
 
