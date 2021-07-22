@@ -9,8 +9,8 @@ class BaseController(ABC):
     def initializeMessageHandler(bot: TeleBot) -> None:
         ...
 
-    def sendMessage(bot: TeleBot, message: Message, data: Any):
+    def sendMessage(bot: TeleBot, message: Message,  text: Any, isHtml: bool = False, parseMode=None):
         """Отправляет сообщение в лс, если боту пишут в группе, и в общий чат, если пишут в лс"""
 
-        bot.send_message(message.chat.id, data) if(
-            message.chat.type == 'private') else bot.reply_to(message, data)
+        bot.send_message(message.chat.id, text, parse_mode=parseMode) if(
+            message.chat.type == 'private') else bot.reply_to(message, text, parse_mode=parseMode)

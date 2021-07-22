@@ -41,8 +41,8 @@ class WebhookBot(CommonCommandsController, DatabaseCommandsController, ServiceCo
             return web.Response(status=403)
 
     def initializeControllers(self) -> None:
-        controllersList = WebhookBot.mro()
+        controllersList: list = WebhookBot.mro()
 
         for controller in controllersList:
-            if re.findall(r"Controller", controller.__name__):
+            if controller.__name__ != "BaseController" and re.findall(r"Controller", controller.__name__):
                 controller.initializeMessageHandler(self.__telebot)

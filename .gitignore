@@ -1,5 +1,3 @@
-__debug_only.py
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -10,6 +8,7 @@ __pycache__/
 
 # Distribution / packaging
 .Python
+/src/__debug_only.py
 /src/__pycache__/
 build/
 develop-eggs/

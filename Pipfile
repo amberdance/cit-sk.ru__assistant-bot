@@ -8,6 +8,7 @@ sqlalchemy = "*"
 pytelegrambotapi = "*"
 requests = "*"
 psycopg2 = "*"
+aiohttp = "*"
 
 [dev-packages]
 autopep8 = "*"

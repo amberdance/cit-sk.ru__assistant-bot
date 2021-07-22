@@ -9,8 +9,8 @@ Base = declarative_base()
 class ChatUserModel(Base):
     __tablename__ = 'users'
 
-    id: int = Column('id', Integer(), primary_key=True, autoincrement=True)
-    astUserId: int = Column('astUserId', Integer, nullable=False)
+    id = Column('id', Integer(), primary_key=True, autoincrement=True)
+    astUserId = Column('astUserId', Integer, nullable=False)
     chatId: int = Column('chatId', Integer, nullable=False)
     chatUserId: int = Column('chatUserId', Integer, nullable=False)
     created: datetime = Column('created', DateTime(

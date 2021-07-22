@@ -1,5 +1,4 @@
 import re
-from typing import List
 from telebot import TeleBot
 from config import BOT_TOKEN
 from .controllers.CommonCommandsController import CommonCommandsController
@@ -17,7 +16,7 @@ class PollingBot(CommonCommandsController, DatabaseCommandsController, ServiceCo
                                interval=interval, timeout=timeout)
 
     def initializeControllers(self) -> None:
-        controllersList: List = PollingBot.mro()
+        controllersList: list = PollingBot.mro()
 
         for controller in controllersList:
             if controller.__name__ != "BaseController" and re.findall(r"Controller", controller.__name__):

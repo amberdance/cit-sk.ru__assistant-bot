@@ -11,14 +11,3 @@ def formatResultSetToDict(data) -> Any:
         result.append(dict(row))
 
     return result[0] if len(result) == 1 else result
-
-
-# class MessageParser:
-
-#     id = None
-#     chatId = None
-#     userId = None
-#     isBot = False
-#     def __init__(self, data) -> None:
-#         print(data)
-#         # self.chatId = data.message.chat.id

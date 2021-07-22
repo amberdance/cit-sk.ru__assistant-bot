@@ -1,3 +1,4 @@
+import time
 import re
 from db.tables.ChatUserTable import ChatUserTable, ChatUserModel
 from db.tables.TaskTable import TaskTable, TaskModel
@@ -34,18 +35,21 @@ class DatabaseCommandsController(BaseController):
 
         @bot.message_handler(regexp="task")
         def getTaskCommand(message: Message):
+            bot.send_chat_action(message.chat.id, 'typing')
+
             taskId = re.findall("\d.*", message.text)
 
             if bool(taskId) is False:
-                BaseController.sendMessage(
+                return BaseController.sendMessage(
                     bot, message, "Укажите команду с номером заявки, например: /task666")
-                return
 
             task = TaskTable.getTaskModel(TaskModel.id == taskId[0])
 
             if hasattr(task, "id"):
                 BaseController.sendMessage(
-                    bot, message, f"Номер заявки:{task.id}, дата создания: {task.orderDate}, неисправность: {task.descr}")
+                    bot, message, f"<b>Номер заявки:</b> {task.id}," +
+                    f"\n<b>Дата создания:</b> {task.orderDate}," +
+                    f"\n<b>Неисправность:</b> {task.descr}", parseMode="html")
             else:
                 BaseController.sendMessage(
                     bot, message, f"Заявка под номером {taskId[0]} не найдена")
