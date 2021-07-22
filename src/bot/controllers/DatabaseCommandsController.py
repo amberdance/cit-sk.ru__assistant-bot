@@ -1,7 +1,7 @@
 import re
-from db.models.ChatUserModel import Base, ChatUserModel
-from db.tables.ChatUserTable import ChatUserTable
-from .BaseController import BaseController, TeleBot
+from db.tables.ChatUserTable import ChatUserTable, ChatUserModel
+from db.tables.TaskTable import TaskTable, TaskModel
+from .BaseController import BaseController, TeleBot, Message
 from config import IS_DEBUG_MODE
 
 
@@ -10,7 +10,7 @@ class DatabaseCommandsController(BaseController):
     @staticmethod
     def initializeMessageHandler(bot: TeleBot) -> None:
         @bot.message_handler(commands=['register', 'reg'])
-        def registerUserCommand(message):
+        def registerUserCommand(message: Message):
 
             try:
                 if(ChatUserTable.isUserRegistered(message.from_user.id)):
@@ -33,6 +33,19 @@ class DatabaseCommandsController(BaseController):
                 BaseController.sendMessage(bot, message, errorMsg)
 
         @bot.message_handler(regexp="task")
-        def getTaskCommand(message):
-            BaseController.sendMessage(
-                bot, message, re.findall("\d", message.text))
+        def getTaskCommand(message: Message):
+            taskId = re.findall("\d.*", message.text)
+
+            if bool(taskId) is False:
+                BaseController.sendMessage(
+                    bot, message, "Укажите команду с номером заявки, например: /task666")
+                return
+
+            task = TaskTable.getTaskModel(TaskModel.id == taskId[0])
+
+            if hasattr(task, "id"):
+                BaseController.sendMessage(
+                    bot, message, f"Номер заявки:{task.id}, дата создания: {task.orderDate}, неисправность: {task.descr}")
+            else:
+                BaseController.sendMessage(
+                    bot, message, f"Заявка под номером {taskId[0]} не найдена")
