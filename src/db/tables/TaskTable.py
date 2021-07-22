@@ -2,5 +2,7 @@ from .BaseTable import BaseTable
 
 
 class TaskTable(BaseTable):
-    def getRandomTask():
+
+    @staticmethod
+    def getRandomTask() -> None:
         pass

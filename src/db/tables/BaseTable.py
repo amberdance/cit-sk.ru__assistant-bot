@@ -7,19 +7,17 @@ class BaseTable:
     @staticmethod
     @overload
     def insertSingleRow(mappedClass: object, session: Session) -> None:
-        session.add(mappedClass)
-        session.commit()
+        pass
 
     @staticmethod
     @overload
-    def insertSingleRow(mappedClass: object, dbContext: str) -> None:
-        session = DbContextBase.getContext(dbContext).getSession()
-        session.add(mappedClass)
-        session.commit()
+    def insertSingleRow(mappedClass: object, context: str) -> None:
+        pass
 
-    def insertSingleRow(mappedClass: object, session: Session = None, dbContext: str = None) -> None:
+    @staticmethod
+    def insertSingleRow(mappedClass: object, session: Session = None, context: str = None) -> None:
         if session is None:
-            session = DbContextBase().getContext(dbContext).getSession()
+            session = DbContextBase().getContext(context=context).getSession()
 
         session.add(mappedClass)
         session.commit()

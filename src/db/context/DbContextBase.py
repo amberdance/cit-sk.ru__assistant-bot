@@ -13,27 +13,24 @@ class DbContextBase:
 
     @overload
     def getContext(self, context: str):
-        return self
+        pass
 
     @overload
     def getContext(self, host: str, login: str, password: str, db: str):
-        return self
+        pass
 
     def getContext(self, host: str = None, login: str = None, password: str = None, db: str = None, context: str = None):
         """ return DbContextBase """
-        print(host, context)
-        
-        # if isinstance(context, str):
-        #     config = self.__getDatabaseConfig(context)
-
-        #     self._engine = create_engine(
-        #         f'postgresql+psycopg2://{config["LOGIN"]}:{config["PASSWORD"]}@{config["HOST"]}/{config["DB"]}')
-        # else:
-        self._engine = create_engine(
-            f'postgresql+psycopg2://{login}:{password}@{host}/{db}')
+        if isinstance(context, str):
+            config = self.__getDatabaseConfig(context)
+            self._engine = create_engine(
+                f'postgresql+psycopg2://{config["LOGIN"]}:{config["PASSWORD"]}@{config["HOST"]}/{config["DB"]}')
+        else:
+            self._engine = create_engine(
+                f'postgresql+psycopg2://{login}:{password}@{host}/{db}')
 
         self.__createConnection()
-        self.__createSession
+        self.__createSession()
 
         return self
 
