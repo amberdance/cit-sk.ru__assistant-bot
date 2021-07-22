@@ -1,7 +1,8 @@
+from abc import ABC, abstractmethod
 from telebot import TeleBot
-from db.context.DbContextBase import DbContextBase
 
 
-class BaseController(DbContextBase):
-    def __init__(self) -> None:
-        super().__init__()
+class BaseController(ABC):
+    @abstractmethod
+    def initializeMessageHandler(bot: TeleBot) -> None:
+        ...

@@ -5,4 +5,4 @@ class TaskTable(BaseTable):
 
     @staticmethod
     def getRandomTask() -> None:
-        pass
+        ...

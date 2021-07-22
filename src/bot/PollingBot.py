@@ -20,9 +20,5 @@ class PollingBot(CommonCommandsController, DatabaseCommandsController, ServiceCo
         controllersList: List = PollingBot.mro()
 
         for controller in controllersList:
-            # To do : вписать в regexp
-            if controller.__name__ == "BaseController":
-                continue
-
-            if re.findall(r"Controller", controller.__name__):
+            if controller.__name__ != "BaseController" and re.findall(r"Controller", controller.__name__):
                 controller.initializeMessageHandler(self.__telebot)

@@ -9,4 +9,4 @@ class ServiceCommandsController(BaseController):
         @bot.message_handler(commands=['userid'])
         def getUserIdCommand(message) -> None:
             bot.reply_to(
-                message, f'User Id is: {message.from_user.id}')
+                message, f'Ваш ID: {message.from_user.id}')

@@ -1,25 +1,30 @@
-from sqlalchemy.sql.expression import text
+from db.models.ChatUserModel import ChatUserModel
+from db.tables.ChatUserTable import ChatUserTable
 from .BaseController import BaseController, TeleBot
-from utils import formatResultSetToDict
-from db.context.DbContextBase import DbContextBase
+from config import IS_DEBUG_MODE
 
 
 class DatabaseCommandsController(BaseController):
 
     @staticmethod
     def initializeMessageHandler(bot: TeleBot) -> None:
-
         @bot.message_handler(commands=['registration', 'reg'])
         def registerUserCommand(message):
-            bot.reply_to(message, "status ok")
+            try:
+                if(ChatUserTable.isUserRegistered(message.from_user.id)):
+                    bot.send_message(
+                        # to do: распознать пол
+                        message.chat.id, f"{message.from_user.first_name} {message.from_user.last_name}, ранее Вы уже были зарегистрированы. Чтобы узнать Ваш id введите /userid")
+                else:
+                    fields = {
+                        "astUserId": 1,
+                        "chatUserId": message.from_user.id
+                    }
 
-        @bot.message_handler(commands=["test"])
-        def testCommand(message):
-            session = DbContextBase().getContext(
-                context="assistant").getSession()
+                    ChatUserTable.addUser(ChatUserModel(**fields))
 
-            result = formatResultSetToDict(session.execute(
-                text("select id, orderdate, descr from asttasks order by random() desc limit 1")))
-
-            bot.reply_to(
-                message, f"Рандомная заявка №{result['id']}, дата создания: {result['orderdate']}, неисправность: {result['descr']}")
+                    bot.send_message(
+                        message.chat.id, "Регистрация прошла успешно! Чтобы узнать свой id напишите команду /userid")
+            except Exception as error:
+                errorMsg = "К сожалению, не удалось вас зарегистрировать, попробуйте еще раз" if IS_DEBUG_MODE is False else error
+                bot.send_message(message.chat.id, errorMsg)
