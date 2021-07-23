@@ -1,6 +1,6 @@
 from telebot.types import Message
 from .BaseController import BaseController, TeleBot
-from db.tables.ChatUserTable import ChatUserTable, ChatUserModel
+from db.tables.telegram import ChatUserTable
 
 
 class CommonCommandsController(BaseController):
@@ -11,7 +11,7 @@ class CommonCommandsController(BaseController):
         def helpCommand(message: Message):
 
             htmlTemplate = "<b>Справка</b>\n /userid - id пользователя" + \
-                "\n\n <b>Работа с заявками</b> \n /task - информация о заявке по ее номеру"
+                "\n\n <b>Работа с заявками</b> \n /task - информация о заявке по ее номеру \n /reg - регистрация у бота"
 
             adminCommands = "\n\n<b>Debug</b> \n /dbgmsg \n /getme \n /getchat"
 

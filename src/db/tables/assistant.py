@@ -1,11 +1,22 @@
+
 from .BaseTable import BaseTable
-from ..models.TaskModel import TaskModel
+from ..models.assistant import TaskModel, AstOrgUserModel, AstUserModel, OrganizationModel
 from ..context.AssistantDbContext import AssistantDbContext
 
 session = AssistantDbContext().getSession()
 
 
-class TaskTable(BaseTable):
+class AstUserTable():
+    @staticmethod
+    def getOrganization(*filter: property) -> list:
+        if(bool(filter) is False):
+            raise Exception("Filter parameter is passed")
+
+        return session.query(OrganizationModel.id, OrganizationModel.title, AstOrgUserModel.id, AstUserModel.id, AstUserModel.email,
+                             AstUserModel.username).join(OrganizationModel, AstUserModel).filter(*filter).all()
+
+
+class TaskTable():
 
     @staticmethod
     def getTaskFields(*fields: property, filter: list = None) -> list:
@@ -24,14 +35,14 @@ class TaskTable(BaseTable):
 
     @ staticmethod
     def addTask(user: TaskModel) -> TaskModel:
-        BaseTable._insertRow(user, session=session)
+        BaseTable.insertRow(user, session=session)
 
         return user
 
     @staticmethod
     def upadteTask() -> None:
-        BaseTable._updateRow(session)
+        BaseTable.updateRow(session)
 
     @staticmethod
     def deleteTask(user: TaskModel) -> None:
-        BaseTable._deleteRow(user, session)
+        BaseTable.deleteRow(user, session)

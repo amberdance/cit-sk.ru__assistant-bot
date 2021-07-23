@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import DateTime, Integer, Column, Boolean
+from sqlalchemy import DateTime, Integer, Column, Boolean, VARCHAR
 from sqlalchemy.ext.declarative import declarative_base
 from ..context.TelegramBotDbContext import TelegramBotDbContext
 
@@ -9,10 +9,11 @@ Base = declarative_base()
 class ChatUserModel(Base):
     __tablename__ = 'users'
 
-    id = Column('id', Integer(), primary_key=True, autoincrement=True)
+    id = Column('id', Integer, primary_key=True, autoincrement=True)
     astUserId = Column('astUserId', Integer, nullable=False)
     chatId: int = Column('chatId', Integer, nullable=False)
     chatUserId: int = Column('chatUserId', Integer, nullable=False)
+    username: str = Column('username', VARCHAR)
     created: datetime = Column('created', DateTime(
         timezone=True), default=datetime.utcnow())
     modified: datetime = Column(

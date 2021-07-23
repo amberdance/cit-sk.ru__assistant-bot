@@ -1,5 +1,6 @@
-from .BaseController import BaseController
+from pprint import pformat
 from telebot import TeleBot
+from .BaseController import BaseController, types
 
 
 class ServiceCommandsController(BaseController):
@@ -13,7 +14,8 @@ class ServiceCommandsController(BaseController):
 
         @bot.message_handler(commands=['dbgmsg'])
         def debugMessage(message):
-            BaseController.sendMessage(bot, message, message)
+            BaseController.sendMessage(
+                bot, message, message)
 
         @bot.message_handler(commands=['getme'])
         def debugMessage(message):
@@ -21,4 +23,5 @@ class ServiceCommandsController(BaseController):
 
         @bot.message_handler(commands=['getchat'])
         def debugMessage(message):
-            BaseController.sendMessage(bot, message, bot.get_chat(message.chat.id))
+            BaseController.sendMessage(
+                bot, message, pformat(bot.get_chat(message.chat.id).__dict__))

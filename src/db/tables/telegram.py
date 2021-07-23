@@ -1,6 +1,6 @@
 from typing import Union
 from .BaseTable import BaseTable
-from ..models.ChatUserModel import ChatUserModel
+from ..models.chat import ChatUserModel
 from ..context.TelegramBotDbContext import TelegramBotDbContext
 
 session = TelegramBotDbContext().getSession()
@@ -25,17 +25,17 @@ class ChatUserTable(BaseTable):
 
     @ staticmethod
     def addUser(user: ChatUserModel) -> ChatUserModel:
-        BaseTable._insertRow(user, session=session)
+        BaseTable.insertRow(user, session=session)
 
         return user
 
     @staticmethod
     def updateUser() -> None:
-        BaseTable._updateRow(session)
+        BaseTable.updateRow(session)
 
     @staticmethod
     def deleteUser(user: ChatUserModel) -> None:
-        BaseTable._deleteRow(user, session)
+        BaseTable.deleteRow(user, session)
 
     @staticmethod
     def isUserRegistered(chatUserId: int) -> bool:
