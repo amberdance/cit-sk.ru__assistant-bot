@@ -7,6 +7,7 @@ if __name__ == "__main__":
         from bot.PollingBot import PollingBot
 
         PollingBot()
+
     else:
         from bot.WebhookBot import WebhookBot
         import logging
