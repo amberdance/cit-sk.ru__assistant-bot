@@ -33,14 +33,16 @@ class DatabaseCommandsController(BaseController):
             bot.send_chat_action(message.chat.id, 'typing')
 
             email = message.text
-
             # список организаций по соответствию email, указанным пользвателем
             orgList = AstUserTable.getOrganization(AstUserModel.email == email)
 
             # вызываем данный шаг до тех пор, пока не будет найдено соответствие по email
             if(bool(orgList) is False):
-                BaseController.sendMessage(
-                    bot, message, f'Пользователь с логином <b>{email}</b> на найден, попробуйте другой', parseMode="html")
+                cancelBtn = types.InlineKeyboardMarkup().add(
+                    types.InlineKeyboardButton("отмена", callback_data="cancel"))
+
+                bot.send_message(
+                    message.chat.id, f'Пользователь с логином <b>{email}</b> на найден, попробуйте другой', reply_markup=cancelBtn, parse_mode="html")
 
                 return bot.register_next_step_handler(message, registerCommandStepTwo)
 
@@ -67,7 +69,12 @@ class DatabaseCommandsController(BaseController):
         def registrationInlineHandler(msg: CallbackQuery):
             payload = msg.data.split("|")
 
-            if payload[0] == "1":
+            if payload[0] == 'cancel':
+                bot.clear_step_handler(msg.message)
+                bot.send_message(msg.message.chat.id,
+                                 "Принято, в другой раз у тебя всн получится")
+
+            elif payload[0] == "1":
                 try:
                     fields = {
                         "chatId": msg.message.chat.id,
