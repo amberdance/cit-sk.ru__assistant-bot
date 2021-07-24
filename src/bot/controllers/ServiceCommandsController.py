@@ -1,6 +1,6 @@
 from pprint import pformat
 from telebot import TeleBot
-from .BaseController import BaseController, types
+from .BaseController import BaseController
 
 
 class ServiceCommandsController(BaseController):

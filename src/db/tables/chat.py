@@ -1,12 +1,12 @@
 from typing import Union
 from .BaseTable import BaseTable
-from ..models.chat import ChatUserModel
+from ..models.chat import UserModel
 from ..context.TelegramBotDbContext import TelegramBotDbContext
 
 session = TelegramBotDbContext().getSession()
 
 
-class ChatUserTable(BaseTable):
+class UserTable(BaseTable):
 
     @staticmethod
     def getUserFields(*fields: property, filter: list = None) -> list:
@@ -15,16 +15,16 @@ class ChatUserTable(BaseTable):
         return [row._asdict() for row in session.query(*fields).all()] if filter is None else [row._asdict() for row in session.query(*fields).filter(*filter).all()]
 
     @staticmethod
-    def getUserModel(*filter: property) -> Union[ChatUserModel, list[ChatUserModel]]:
+    def getUserModel(*filter: property) -> Union[UserModel, list[UserModel]]:
         """Return ORM model"""
 
-        result = [row for row in session.query(ChatUserModel).all()] if filter is None else [
-            row for row in session.query(ChatUserModel).filter(*filter).all()]
+        result = [row for row in session.query(UserModel).all()] if filter is None else [
+            row for row in session.query(UserModel).filter(*filter).all()]
 
         return result[0] if len(result) == 1 else result
 
     @ staticmethod
-    def addUser(user: ChatUserModel) -> ChatUserModel:
+    def addUser(user: UserModel) -> UserModel:
         BaseTable.insertRow(user, session=session)
 
         return user
@@ -34,13 +34,13 @@ class ChatUserTable(BaseTable):
         BaseTable.updateRow(session)
 
     @staticmethod
-    def deleteUser(user: ChatUserModel) -> None:
+    def deleteUser(user: UserModel) -> None:
         BaseTable.deleteRow(user, session)
 
     @staticmethod
     def isUserRegistered(chatUserId: int) -> bool:
-        return bool(ChatUserTable.getUserFields(ChatUserModel.id, filter=[ChatUserModel.chatUserId == chatUserId]))
+        return bool(UserTable.getUserFields(UserModel.id, filter=[UserModel.chatUserId == chatUserId]))
 
     @staticmethod
     def isAdmin(chatUserId: int) -> bool:
-        return bool(ChatUserTable.getUserFields(ChatUserModel.role, filter=[ChatUserModel.chatUserId == chatUserId]))
+        return bool(UserTable.getUserFields(UserModel.role, filter=[UserModel.chatUserId == chatUserId]))

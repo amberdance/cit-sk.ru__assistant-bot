@@ -1,6 +1,6 @@
 import re
-from db.models.chat import ChatUserModel
-from db.tables.telegram import ChatUserTable
+from db.models.chat import UserModel
+from db.tables.chat import UserTable
 from db.tables.assistant import TaskTable, TaskModel, AstUserTable, AstUserModel
 from .BaseController import BaseController, TeleBot, Message, CallbackQuery, types
 
@@ -18,9 +18,9 @@ class DatabaseCommandsController(BaseController):
         def registerCommandStepOne(message: Message):
 
             # сперва проверка на наличие пользователя в базе данных
-            if(ChatUserTable.isUserRegistered(message.from_user.id)):
-                username = ChatUserTable.getUserFields(
-                    ChatUserModel.username, filter=[ChatUserModel.chatUserId == message.from_user.id])[0]['username']
+            if(UserTable.isUserRegistered(message.from_user.id)):
+                username = UserTable.getUserFields(
+                    UserModel.username, filter=[UserModel.chatUserId == message.from_user.id])[0]['username']
 
                 return BaseController.sendMessage(
                     bot, message, f"{username}, ранее Вы уже были зарегистрированы. Чтобы узнать Ваш id введите /userid")
@@ -77,7 +77,7 @@ class DatabaseCommandsController(BaseController):
                         "username": payload[2]
                     }
 
-                    ChatUserTable.addUser(ChatUserModel(**fields))
+                    UserTable.addUser(UserModel(**fields))
                     bot.send_message(
                         msg.message.chat.id, f"{payload[2]}, регистрация прошла успешно!")
                 except Exception:

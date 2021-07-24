@@ -1,6 +1,6 @@
 from telebot.types import Message
 from .BaseController import BaseController, TeleBot
-from db.tables.telegram import ChatUserTable
+from db.tables.chat import UserTable
 
 
 class CommonCommandsController(BaseController):
@@ -15,7 +15,7 @@ class CommonCommandsController(BaseController):
 
             adminCommands = "\n\n<b>Debug</b> \n /dbgmsg \n /getme \n /getchat"
 
-            if ChatUserTable.isAdmin(message.from_user.id):
+            if UserTable.isAdmin(message.from_user.id):
                 htmlTemplate += adminCommands
 
             bot.send_message(

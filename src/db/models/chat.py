@@ -6,7 +6,7 @@ from ..context.TelegramBotDbContext import TelegramBotDbContext
 Base = declarative_base()
 
 
-class ChatUserModel(Base):
+class UserModel(Base):
     __tablename__ = 'users'
 
     id = Column('id', Integer, primary_key=True, autoincrement=True)
