@@ -43,4 +43,4 @@ class UserTable(BaseTable):
 
     @staticmethod
     def isAdmin(chatUserId: int) -> bool:
-        return bool(UserTable.getUserFields(UserModel.role, filter=[UserModel.role == 1]))
+        return bool(UserTable.getUserFields(UserModel.role, filter=[UserModel.role == 1, UserModel.chatUserId == chatUserId]))

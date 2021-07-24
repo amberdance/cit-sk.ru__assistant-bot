@@ -7,6 +7,7 @@ session = AssistantDbContext().getSession()
 
 
 class AstUserTable():
+    
     @staticmethod
     def getOrganization(*filter: property) -> list:
         if(bool(filter) is False):
