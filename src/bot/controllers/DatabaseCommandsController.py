@@ -5,15 +5,10 @@ from db.tables.assistant import TaskTable, TaskModel, AstUserTable, AstUserModel
 from .BaseController import BaseController, TeleBot, Message, CallbackQuery, types
 
 
-MESSAGE_ID = 0
-CHAT_ID = 0
-
-
 class DatabaseCommandsController(BaseController):
 
     @staticmethod
     def initializeMessageHandler(bot: TeleBot) -> None:
-
         @bot.message_handler(commands=["registration", "reg"])
         def registerCommandStepOne(message: Message):
 
@@ -34,11 +29,6 @@ class DatabaseCommandsController(BaseController):
             bot.register_next_step_handler(message, registerCommandStepTwo)
 
         def registerCommandStepTwo(message: Message) -> None:
-            global MESSAGE_ID
-            global CHAT_ID
-
-            MESSAGE_ID = message.id
-            CHAT_ID = message.chat.id
 
             bot.send_chat_action(message.chat.id, 'typing')
 
@@ -47,11 +37,20 @@ class DatabaseCommandsController(BaseController):
             # список организаций по соответствию email, указанным пользвателем
             orgList = AstUserTable.getOrganization(AstUserModel.email == email)
 
+            # вызываем данный шаг до тех пор, пока не будет найдено соответствие по email
             if(bool(orgList) is False):
-                return BaseController.sendMessage(
-                    bot, message, f'Пользователь с логином <b>{email}</b> на найден', parseMode="html")
+                BaseController.sendMessage(
+                    bot, message, f'Пользователь с логином <b>{email}</b> на найден, попробуйте другой', parseMode="html")
 
-             # список названий организаций в виде строки с переносом
+                return bot.register_next_step_handler(message, registerCommandStepTwo)
+
+            else:
+                bot.register_next_step_handler(
+                    message, registerCommandStepThree(message, orgList))
+
+        def registerCommandStepThree(message: Message, orgList: list) -> None:
+
+            # список названий организаций в виде строки с переносом
             orgLabels = "\n".join(set(i.title for i in orgList))
             key = types.InlineKeyboardMarkup()
             btn1 = types.InlineKeyboardButton(
@@ -80,9 +79,10 @@ class DatabaseCommandsController(BaseController):
                     UserTable.addUser(UserModel(**fields))
                     bot.send_message(
                         msg.message.chat.id, f"{payload[2]}, регистрация прошла успешно!")
-                except Exception:
+                except Exception as error:
                     bot.send_message(
                         msg.message.chat.id, "Что-то пошло не так, попробуйте еще раз, но сомневаюсь, что это поможет")
+                    print(error)
 
             elif payload[0] == "0":
                 bot.send_message(msg.message.chat.id,
