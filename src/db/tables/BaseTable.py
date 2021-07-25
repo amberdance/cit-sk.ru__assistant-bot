@@ -1,5 +1,5 @@
 from typing import Union, overload
-from db.context.DbContextBase import DbContextBase, Session
+from ..context import DbContextBase, Session
 
 
 class BaseTable:

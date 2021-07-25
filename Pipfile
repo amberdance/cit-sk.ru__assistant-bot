@@ -9,6 +9,8 @@ pytelegrambotapi = "*"
 requests = "*"
 psycopg2 = "*"
 aiohttp = "*"
+pip = "*"
+schedule = "*"
 
 [dev-packages]
 autopep8 = "*"

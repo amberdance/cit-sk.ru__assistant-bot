@@ -2,7 +2,7 @@ from typing import Any, overload
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine.base import Connection, Engine
 from sqlalchemy.orm.session import Session, sessionmaker
-from config import ASSISTANT_DB, TELEGRAMBOT_DB
+from config import ASSISTANT_DB, TELEGRAM_DB
 
 
 class DbContextBase:
@@ -67,7 +67,7 @@ class DbContextBase:
     @staticmethod
     def __getDatabaseConfig(context: str) -> dict:
         if context == "telegram":
-            return TELEGRAMBOT_DB
+            return TELEGRAM_DB
 
         if context == "assistant":
             return ASSISTANT_DB

@@ -1,13 +1,17 @@
 import re
-from db.tables.chat import ChatUserTable, ChatUserModel
-from db.tables.assistant import TaskTable, TaskModel, AstUserTable, AstUserModel
-from .BaseController import BaseController, TeleBot, Message, CallbackQuery, types
+from telebot import types
+from controllers.BaseControllers import BaseController, ThreadController, Message, TeleBot, CallbackQuery, appLog
+from db.tables.chat import *
+from db.tables.assistant import *
 
 
 class DatabaseCommandsController(BaseController):
 
     @staticmethod
     def initializeMessageHandler(bot: TeleBot) -> None:
+
+        ThreadController.startTaskDbThreading(bot)
+
         @bot.message_handler(commands=["reg"])
         def registerCommandStepOne(message: Message):
 
@@ -99,8 +103,9 @@ class DatabaseCommandsController(BaseController):
                     f"\n<b>Оператор:</b> {taskMeta.username},",
                     parseMode="html")
 
-            except:
+            except Exception as error:
                 bot.send_message(message.chat.id, "Что-то пошло не так")
+                appLog.exception(error)
 
         @bot.callback_query_handler(func=lambda message: True)
         def registrationInlineHandler(msg: CallbackQuery):

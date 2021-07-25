@@ -3,12 +3,14 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+
 # C extensions
 *.so
 
 # Distribution / packaging
 .Python
-/src/__debug_only.py
+_debug.py
+*.log
 /src/__pycache__/
 build/
 develop-eggs/

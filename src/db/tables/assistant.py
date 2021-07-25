@@ -1,8 +1,9 @@
 
 from typing import Union
+from sqlalchemy.sql.functions import func
 from db.tables.BaseTable import BaseTable
-from ..models.assistant import TaskModel, AstOrgUserModel, AstUserModel, OrganizationModel
-from ..context.AssistantDbContext import AssistantDbContext
+from ..models.assistant import *
+from ..context import AssistantDbContext
 
 session = AssistantDbContext().getSession()
 
@@ -42,9 +43,14 @@ class TaskTable(BaseTable):
         return result[0] if len(result) == 1 else result
 
     @staticmethod
-    def getTaskModel(*filter: property) -> TaskModel:
-        """Return ORM model"""
+    def getFreshTask(*filter: property) -> Union[TaskModel, list[TaskModel]]:
+        result = [row for row in session.query(
+            TaskModel).filter(*filter).order_by(func.random()).all()]
 
+        return result[0] if len(result) == 1 else result
+
+    @staticmethod
+    def getTaskModel(*filter: property) -> TaskModel:
         result = [row for row in session.query(
             TaskModel).filter(*filter).all()]
 

@@ -1,7 +1,7 @@
 from datetime import datetime
 from sqlalchemy import DateTime, Integer, Column, Boolean, VARCHAR
 from sqlalchemy.ext.declarative import declarative_base
-from ..context.TelegramBotDbContext import TelegramBotDbContext
+from ..context import TelegramBotDbContext
 
 Base = declarative_base()
 

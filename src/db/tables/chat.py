@@ -2,7 +2,7 @@ from typing import Union
 from sqlalchemy.engine.row import Row
 from .BaseTable import BaseTable
 from ..models.chat import ChatUserModel
-from ..context.TelegramBotDbContext import TelegramBotDbContext
+from ..context import TelegramBotDbContext
 
 session = TelegramBotDbContext().getSession()
 

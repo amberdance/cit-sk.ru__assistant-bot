@@ -1,22 +1,17 @@
-# Only for usage in public network
-
 import logging
-import re
 from aiohttp.web_app import Application
-from config import BOT_TOKEN, WEBHOOK_LISTEN, WEBHOOK_LISTEN_PORT
 from aiohttp import web
 import telebot
-from bot.controllers.CommonCommandsController import CommonCommandsController
-from bot.controllers.DatabaseCommandsController import DatabaseCommandsController
-from bot.controllers.ServiceCommandsController import ServiceCommandsController
+from config import BOT_TOKEN, WEBHOOK_LISTEN, WEBHOOK_LISTEN_PORT
+from controllers import CommonCommandsController, DatabaseCommandsController, ServiceCommandsController
 
 
-class WebhookBot(CommonCommandsController, DatabaseCommandsController, ServiceCommandsController):
+class WebhookBot():
 
     __app: Application = web.Application()
     __telebot: telebot.TeleBot = telebot.TeleBot(BOT_TOKEN)
 
-    def __init__(self, botLoggingLevel: logging = logging.INFO, httpServerLoggingLevel: logging = logging.INFO) -> None:
+    def __init__(self, botLoggingLevel: logging = logging.ERROR, httpServerLoggingLevel: logging = logging.ERROR) -> None:
 
         logging.basicConfig(level=botLoggingLevel)
         telebot.logger.setLevel(httpServerLoggingLevel)
@@ -41,8 +36,8 @@ class WebhookBot(CommonCommandsController, DatabaseCommandsController, ServiceCo
             return web.Response(status=403)
 
     def initializeControllers(self) -> None:
-        controllersList: list = WebhookBot.mro()
+        controllers = (CommonCommandsController,
+                       ServiceCommandsController, DatabaseCommandsController)
 
-        for controller in controllersList:
-            if controller.__name__ != "BaseController" and re.findall(r"Controller", controller.__name__):
-                controller.initializeMessageHandler(self.__telebot)
+        for obj in controllers:
+            obj.initializeMessageHandler(self.__telebot)
