@@ -2,7 +2,7 @@ import logging
 from aiohttp.web_app import Application
 from aiohttp import web
 import telebot
-from config import BOT_TOKEN, WEBHOOK_LISTEN, WEBHOOK_LISTEN_PORT
+from config import BOT_TOKEN, WEBHOOK_URL_BASE, WEBHOOK_URL_PATH, WEBHOOK_LISTEN, WEBHOOK_LISTEN_PORT
 from controllers import CommonCommandsController, DatabaseCommandsController, ServiceCommandsController
 
 
@@ -16,8 +16,10 @@ class WebhookBot():
         logging.basicConfig(level=httpServerLoggingLevel)
         telebot.logger.setLevel(botLoggingLevel)
 
-        self.__app.router.add_post('/{token}/', self.handle)
+        self.__telebot.remove_webhook()
+        self.__telebot.set_webhook(WEBHOOK_URL_BASE + WEBHOOK_URL_PATH)
 
+        self.__app.router.add_post('/{token}/', self.handle)
         self.initializeControllers()
 
         web.run_app(
