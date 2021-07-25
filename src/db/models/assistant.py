@@ -22,7 +22,7 @@ class TaskModel(Base):
     serviceStartData: datetime = Column('servicestartdata')
     serviceEndData: datetime = Column('serviceenddata')
     serviceDescr: str = Column('servicedescr', Text)
-    operatorId: int = Column('operatorid', Integer)
+    operatorId: int = Column('operatorid', Integer, ForeignKey('astusers.id'))
     operatorOrgId: int = Column('operatororgid', Integer)
     categoryId: int = Column('categoryid', Integer)
 
@@ -30,7 +30,7 @@ class TaskModel(Base):
 class AstUserModel(Base):
     __tablename__ = 'astusers'
 
-    id: int = Column('id', Integer, primary_key=True, autoincrement=True)
+    id: int = Column('id', Integer,  primary_key=True, autoincrement=True)
     uid: str = Column('uid', VARCHAR)
     email: str = Column('email', VARCHAR)
     phone: str = Column('phone', VARCHAR)

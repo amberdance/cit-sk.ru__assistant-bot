@@ -1,6 +1,5 @@
 import re
-from db.models.chat import UserModel
-from db.tables.chat import UserTable
+from db.tables.chat import ChatUserTable, ChatUserModel
 from db.tables.assistant import TaskTable, TaskModel, AstUserTable, AstUserModel
 from .BaseController import BaseController, TeleBot, Message, CallbackQuery, types
 
@@ -13,9 +12,9 @@ class DatabaseCommandsController(BaseController):
         def registerCommandStepOne(message: Message):
 
             # сперва проверка на наличие пользователя в базе данных
-            if(UserTable.isUserRegistered(message.from_user.id)):
-                username = UserTable.getUserFields(
-                    UserModel.username, filter=[UserModel.chatUserId == message.from_user.id])[0]['username']
+            if(ChatUserTable.isUserRegistered(message.from_user.id)):
+                username = ChatUserTable.getUserFields(
+                    ChatUserModel.username, filter=[ChatUserModel.chatUserId == message.from_user.id])['username']
 
                 return BaseController.sendMessage(
                     bot, message, f"{username}, ранее Вы уже были зарегистрированы. Чтобы узнать Ваш Id введите /userid")
@@ -34,7 +33,7 @@ class DatabaseCommandsController(BaseController):
         def registerCommandStepTwo(message: Message) -> None:
             email = message.text
 
-            if(bool(re.findall(r'\b[\w.-]+?@\w+?\.\w+?\b', email)) is False):
+            if(bool(re.findall(r'[\w\.-]+@[\w\.-]+(?:\.[\w]+)+', email)) is False):
                 bot.send_message(message.chat.id, 'Введите корректный email')
                 return bot.register_next_step_handler(message, registerCommandStepTwo)
 
@@ -59,8 +58,9 @@ class DatabaseCommandsController(BaseController):
             orgLabels = "\n".join(set(i.title for i in orgList))
             username = orgList[0].username
             key = types.InlineKeyboardMarkup()
+            args = f"1|{orgList[0].userId}|{orgList[0].orgId}"
             btn1 = types.InlineKeyboardButton(
-                text="Да", callback_data=str(f"1|{orgList[0].id}|{username}"))
+                text="Да", callback_data=args)
             btn2 = types.InlineKeyboardButton(
                 text="Нет", callback_data="0")
 
@@ -69,51 +69,74 @@ class DatabaseCommandsController(BaseController):
             bot.send_message(
                 message.chat.id, f"<b>{username}, нашел список организаций за которыми вы закреплены:</b>\n{orgLabels}\n<b>Все верно</b> ?", reply_markup=key, parse_mode="html")
 
-        @bot.callback_query_handler(func=lambda message: True)
-        def registrationInlineHandler(msg: CallbackQuery):
-            payload = msg.data.split("|")
-
-            if payload[0] == '0':
-                bot.clear_step_handler(msg.message)
-                bot.send_message(msg.message.chat.id,
-                                 "Ладно, в другой раз")
-
-            elif payload[0] == "1":
-                try:
-                    fields = {
-                        "chatId": msg.message.chat.id,
-                        "chatUserId": msg.from_user.id,
-                        "astUserId": payload[1],
-                        "username": payload[2],
-                        "role": 2
-                    }
-
-                    UserTable.addUser(UserModel(**fields))
-                    bot.send_message(
-                        msg.message.chat.id, f"{payload[2]}, регистрация прошла успешно!")
-                except Exception as error:
-                    bot.send_message(
-                        msg.message.chat.id, "Что-то пошло не так, попробуйте еще раз, но сомневаюсь, что это поможет")
-
-            # удаление кнопок
-            bot.edit_message_reply_markup(
-                msg.message.chat.id, msg.message.id, reply_markup=None)
-
         @bot.message_handler(regexp="task")
         def getTaskCommand(message: Message):
+            bot.send_chat_action(message.chat.id, 'typing')
+
             taskId = re.findall("\d.*", message.text)
 
             if bool(taskId) is False:
                 return BaseController.sendMessage(
                     bot, message, "Укажите команду с номером заявки, например: /task666")
 
-            task = TaskTable.getTaskModel(TaskModel.id == taskId[0])
+            try:
+                # Получаем заявку по соответствию номера и id организации, к которой прикреплен пользователь
+                clientOrgId = ChatUserTable.getUserFields(ChatUserModel.astOrgId, filter=[
+                    ChatUserModel.chatUserId == message.from_user.id]).astOrgId
 
-            if hasattr(task, "id"):
+                taskMeta = TaskTable.getTaskMeta(
+                    TaskModel.id == taskId[0], TaskModel.clientOrgId == clientOrgId)
+
+                if len(taskMeta) == 0:
+                    return BaseController.sendMessage(
+                        bot, message, f"Заявка номер <b>{taskId[0]}</b> не найдена", parseMode="html")
+
                 BaseController.sendMessage(
-                    bot, message, f"<b>Номер заявки:</b> {task.id}," +
-                    f"\n<b>Дата создания:</b> {task.orderDate}," +
-                    f"\n<b>Неисправность:</b> {task.descr}", parseMode="html")
-            else:
-                BaseController.sendMessage(
-                    bot, message, f"Заявка под номером {taskId[0]} не найдена")
+                    bot, message, f"<b>Номер заявки:</b> {taskMeta.id}," +
+                    f"\n<b>Дата создания:</b> {taskMeta.orderDate}," +
+                    f"\n<b>Статус:</b> {TaskTable.getStatusLabel(taskMeta.status)}," +
+                    f"\n<b>Неисправность:</b> {taskMeta.descr}" +
+                    f"\n<b>Оператор:</b> {taskMeta.username},",
+                    parseMode="html")
+
+            except:
+                bot.send_message(message.chat.id, "Что-то пошло не так")
+
+        @bot.callback_query_handler(func=lambda message: True)
+        def registrationInlineHandler(msg: CallbackQuery):
+            payload = msg.data.split("|")
+
+            # обработка кнопки отмены
+            if payload[0] == '0':
+                bot.clear_step_handler(msg.message)
+                bot.send_message(msg.message.chat.id,
+                                 "Ладно, в другой раз")
+
+            # обработка кнопки да (регистрация юзера)
+            elif payload[0] == "1":
+                bot.send_chat_action(msg.message.chat.id, 'typing')
+
+                try:
+                    user = AstUserTable.getAstUserModel(
+                        AstUserModel.id == payload[1])
+
+                    fields = {
+                        "chatId": msg.message.chat.id,
+                        "chatUserId": msg.from_user.id,
+                        "astOrgId": payload[2],
+                        "astUserId": user.id,
+                        "username": user.username,
+                        "email": user.email,
+                        "role": 2
+                    }
+
+                    ChatUserTable.addUser(ChatUserModel(**fields))
+                    bot.send_message(
+                        msg.message.chat.id, f"{user.username}, регистрация прошла успешно!")
+                except Exception:
+                    bot.send_message(
+                        msg.message.chat.id, "Что-то пошло не так")
+
+            # удаление кнопок
+            bot.edit_message_reply_markup(
+                msg.message.chat.id, msg.message.id, reply_markup=None)

@@ -6,14 +6,16 @@ from ..context.TelegramBotDbContext import TelegramBotDbContext
 Base = declarative_base()
 
 
-class UserModel(Base):
+class ChatUserModel(Base):
     __tablename__ = 'users'
 
     id = Column('id', Integer, primary_key=True, autoincrement=True)
     astUserId = Column('astUserId', Integer, nullable=False)
     chatId: int = Column('chatId', Integer, nullable=False)
     chatUserId: int = Column('chatUserId', Integer, nullable=False)
+    astOrgId: int = Column('astOrgId', Integer)
     username: str = Column('username', VARCHAR)
+    email: str = Column('email', VARCHAR)
     created: datetime = Column('created', DateTime(
         timezone=True), default=datetime.utcnow())
     modified: datetime = Column(

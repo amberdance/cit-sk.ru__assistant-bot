@@ -1,30 +1,34 @@
 from typing import Union
+from sqlalchemy.engine.row import Row
 from .BaseTable import BaseTable
-from ..models.chat import UserModel
+from ..models.chat import ChatUserModel
 from ..context.TelegramBotDbContext import TelegramBotDbContext
 
 session = TelegramBotDbContext().getSession()
 
 
-class UserTable(BaseTable):
+class ChatUserTable(BaseTable):
 
     @staticmethod
-    def getUserFields(*fields: property, filter: list = None) -> list:
-        """Return dictionary data representaion"""
+    def getUserFields(*fields: property, filter: list = [], join: list = None) -> Union[Row, list[Row]]:
+        query = session.query(*fields)
 
-        return [row._asdict() for row in session.query(*fields).all()] if filter is None else [row._asdict() for row in session.query(*fields).filter(*filter).all()]
+        if join is not None:
+            query = query.join(*join)
+
+        result = query.filter(*filter).all()
+
+        return result[0] if len(result) == 1 else result
 
     @staticmethod
-    def getUserModel(*filter: property) -> Union[UserModel, list[UserModel]]:
-        """Return ORM model"""
-
-        result = [row for row in session.query(UserModel).all()] if filter is None else [
-            row for row in session.query(UserModel).filter(*filter).all()]
+    def getUserModel(*filter: property) -> Union[ChatUserModel, list[ChatUserModel]]:
+        result = [row for row in session.query(
+            ChatUserModel).filter(*filter).all()]
 
         return result[0] if len(result) == 1 else result
 
     @ staticmethod
-    def addUser(user: UserModel) -> UserModel:
+    def addUser(user: ChatUserModel) -> ChatUserModel:
         BaseTable.insertRow(user, session=session)
 
         return user
@@ -34,13 +38,13 @@ class UserTable(BaseTable):
         BaseTable.updateRow(session)
 
     @staticmethod
-    def deleteUser(user: UserModel) -> None:
+    def deleteUser(user: ChatUserModel) -> None:
         BaseTable.deleteRow(user, session)
 
     @staticmethod
     def isUserRegistered(chatUserId: int) -> bool:
-        return bool(UserTable.getUserFields(UserModel.id, filter=[UserModel.chatUserId == chatUserId]))
+        return bool(ChatUserTable.getUserFields(ChatUserModel.id, filter=[ChatUserModel.chatUserId == chatUserId]))
 
     @staticmethod
     def isAdmin(chatUserId: int) -> bool:
-        return bool(UserTable.getUserFields(UserModel.role, filter=[UserModel.role == 1, UserModel.chatUserId == chatUserId]))
+        return bool(ChatUserTable.getUserFields(ChatUserModel.role, filter=[ChatUserModel.role == 1, ChatUserModel.chatUserId == chatUserId]))
