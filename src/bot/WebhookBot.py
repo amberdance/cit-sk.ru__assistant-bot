@@ -13,8 +13,8 @@ class WebhookBot():
 
     def __init__(self, botLoggingLevel: logging = logging.ERROR, httpServerLoggingLevel: logging = logging.ERROR) -> None:
 
-        logging.basicConfig(level=botLoggingLevel)
-        telebot.logger.setLevel(httpServerLoggingLevel)
+        logging.basicConfig(level=httpServerLoggingLevel)
+        telebot.logger.setLevel(botLoggingLevel)
 
         self.__app.router.add_post('/{token}/', self.handle)
 

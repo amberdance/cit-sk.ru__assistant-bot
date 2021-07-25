@@ -14,7 +14,6 @@ class DatabaseCommandsController(BaseController):
 
         @bot.message_handler(commands=["reg"])
         def registerCommandStepOne(message: Message):
-
             # сперва проверка на наличие пользователя в базе данных
             if(ChatUserTable.isUserRegistered(message.from_user.id)):
                 username = ChatUserTable.getUserFields(

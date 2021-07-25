@@ -1,4 +1,4 @@
-from typing import Union, overload
+from typing import Union, List, overload
 from ..context import DbContextBase, Session
 
 
@@ -35,7 +35,7 @@ class BaseTable:
         ...
 
     @staticmethod
-    def getRow(session: Session, *model: object,  filter: list[property]) -> Union[object, list[object]]:
+    def getRow(session: Session, *model: object,  filter: List[property]) -> Union[object, List[object]]:
         """Return ORM model"""
 
         result = [row for row in session.query(*model).all()] if filter is None else [

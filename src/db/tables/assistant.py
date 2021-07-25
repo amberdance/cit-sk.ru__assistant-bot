@@ -1,5 +1,5 @@
 
-from typing import Union
+from typing import Union, List
 from sqlalchemy.sql.functions import func
 from db.tables.BaseTable import BaseTable
 from ..models.assistant import *
@@ -18,7 +18,7 @@ class AstUserTable(BaseTable):
                              AstUserModel.username).join(OrganizationModel, AstUserModel).filter(*filter).all()
 
     @staticmethod
-    def getAstUserModel(*filter: property) -> Union[AstUserModel, list[AstUserModel]]:
+    def getAstUserModel(*filter: property) -> Union[AstUserModel, List[AstUserModel]]:
         if(bool(filter) is False):
             raise Exception("Filter parameter is required")
 
@@ -43,7 +43,7 @@ class TaskTable(BaseTable):
         return result[0] if len(result) == 1 else result
 
     @staticmethod
-    def getFreshTask(*filter: property) -> Union[TaskModel, list[TaskModel]]:
+    def getFreshTask(*filter: property) -> Union[TaskModel, List[TaskModel]]:
         result = [row for row in session.query(
             TaskModel).filter(*filter).order_by(func.random()).all()]
 

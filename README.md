@@ -1,1 +1,1 @@
-# assistant-bot 1.0.1
+# assistant-bot 1.0.2

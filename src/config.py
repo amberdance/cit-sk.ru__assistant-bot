@@ -11,7 +11,7 @@ WEBHOOK_URL_BASE = f'https://{WEBHOOK_HOST}:{WEBHOOK_PORT}'
 WEBHOOK_URL_PATH = f'/{BOT_TOKEN}/'
 
 TELEGRAM_DB = {
-    "DB": "telegrambot",
+    "DB": "telegram",
     "HOST": "127.0.0.1",
     "PORT": 5432,
     "LOGIN": "postgres",
