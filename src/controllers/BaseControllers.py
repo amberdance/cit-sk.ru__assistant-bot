@@ -48,10 +48,10 @@ class ThreadController:
 
                         for task in tasks:
                             bot.send_chat_action(chatId, 'typing')
-                            bot.send_message(chatId, f"{user['username']} У вас есть новые заявки:\n" +
-                                             f"<b>Номер заявки:</b> {task['id']}" +
-                                             f"\n<b>Дата создания:</b> {task['orderDate']}" +
+                            bot.send_message(chatId, "У вас есть новые заявки:\n" +
                                              f"\n<b>Статус:</b> {TaskTable.getStatusLabel(task['status'])}" +
+                                             f"\n<b>Дата создания:</b> {task['orderDate']}" +
+                                             f"<b>Номер заявки:</b> {task['id']}" +
                                              f"\n<b>Организация:</b> {task['org']}" +
                                              f"\n<b>Неисправность:</b> {task['descr']}", parse_mode="html")
 
