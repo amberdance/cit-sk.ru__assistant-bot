@@ -76,7 +76,6 @@ class DatabaseCommandsController(BaseController):
             bot.send_message(
                 message.chat.id, f"<b>{username}, нашел список организаций за которыми вы закреплены:</b>\n{orgLabels}\n<b>Все верно</b> ?", reply_markup=key, parse_mode="html")
 
-        # Информация о заявках со статусом "новая" и по соответствию организации
         @bot.message_handler(func=lambda message: re.findall(r"tasks", message.text) and message.chat.type == 'private')
         def getTasksCommand(message: Message) -> None:
             chatId = message.chat.id
@@ -87,13 +86,9 @@ class DatabaseCommandsController(BaseController):
                 statusId = TaskTable.getStatusId(messageParams[1])
 
             if(not ChatUserTable.isUserRegistered(chatId)):
-                bot.send_message(chatId, "Сперва пройдите регистрацию /reg")
+                bot.send_message(chatId, "Сперва выполните регистрацию /reg")
 
-            operatorId = ChatUserTable.getUserFields(ChatUserModel.astUserId, filter=[
-                ChatUserModel.chatId == chatId])[0]
-
-            tasks = TaskTable.getTaskFields(TaskModel.id, TaskModel.descr, TaskModel.status, TaskModel.orderDate, OrganizationModel.title.label(
-                "org"), filter=[TaskModel.status == statusId, TaskModel.operatorId == operatorId], join=[OrganizationModel])
+            tasks = TaskTable.getTaskByChatUserId(chatId, statusId)
 
             if(bool(tasks) is False):
                 return bot.send_message(chatId, "Заявок не найдено")
@@ -112,7 +107,6 @@ class DatabaseCommandsController(BaseController):
 
         @bot.callback_query_handler(func=lambda message: True)
         def registrationInlineHandler(msg: CallbackQuery):
-
             payload = msg.data.split("|")
 
             # обработка кнопки отмены
@@ -145,6 +139,7 @@ class DatabaseCommandsController(BaseController):
                 except Exception:
                     bot.send_message(
                         msg.message.chat.id, "Что-то пошло не так")
+                    appLog.error(Exception)
 
             # удаление кнопок
             bot.edit_message_reply_markup(

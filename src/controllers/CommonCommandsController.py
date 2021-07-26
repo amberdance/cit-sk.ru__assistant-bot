@@ -7,7 +7,7 @@ class CommonCommandsController(BaseController):
 
     @staticmethod
     def initializeMessageHandler(bot: TeleBot) -> None:
-        @bot.message_handler(commands=['help'])
+        @bot.message_handler(commands=['help', 'start'])
         def helpCommand(message: Message):
 
             htmlTemplate = "<b>Справка:</b>\n /userid - id пользователя" + \

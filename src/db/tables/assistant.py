@@ -1,8 +1,8 @@
 
 import re
 from typing import Union, List
-from sqlalchemy.sql.functions import func
-from db.tables.BaseTable import BaseTable
+from ..tables.BaseTable import BaseTable
+from ..tables.chat import *
 from ..models.assistant import *
 from ..context import AssistantDbContext
 
@@ -23,9 +23,7 @@ class AstUserTable(BaseTable):
         if(bool(filter) is False):
             raise Exception("Filter parameter is required")
 
-        result = session.query(AstUserModel).filter(*filter).all()
-
-        return result[0] if len(result) == 1 else result
+        return session.query(AstUserModel).filter(*filter).all()
 
 
 class TaskTable(BaseTable):
@@ -40,25 +38,23 @@ class TaskTable(BaseTable):
         return [row._asdict() for row in query.filter(*filter).all()]
 
     @staticmethod
-    def getFreshTask(*filter: property) -> Union[TaskModel, List[TaskModel]]:
-        result = [row for row in session.query(
-            TaskModel).filter(*filter).order_by(func.random()).all()]
+    def getTaskModel(*filter: property, join: List = None) -> Union[TaskModel, List[TaskModel]]:
+        query = session.query(TaskModel)
+
+        if join is not None:
+            query = query.join(*join)
+
+        result = query.filter(*filter).all()
 
         return result[0] if len(result) == 1 else result
 
     @staticmethod
-    def getTaskModel(*filter: property, join: List = None) -> TaskModel:
-        result = [row for row in session.query(
-            TaskModel).filter(*filter).all()]
+    def getTaskByChatUserId(chatUserId: int, taskStatusId: int = 0) -> List:
+        operatorId = ChatUserTable.getUserFields(ChatUserModel.astUserId, filter=[
+            ChatUserModel.chatId == chatUserId])[0]
 
-        return result[0] if len(result) == 1 else result
-
-    @staticmethod
-    def getTaskMeta(*filter: property) -> List:
-        result = session.query(TaskModel.id,  TaskModel.orderDate, TaskModel.descr, TaskModel.status,
-                               AstUserModel.username).join(AstUserModel).filter(*filter).all()
-
-        return result[0] if len(result) == 1 else result
+        return TaskTable.getTaskFields(TaskModel.id, TaskModel.descr, TaskModel.status, TaskModel.orderDate, OrganizationModel.title.label(
+            "org"), filter=[TaskModel.status == taskStatusId, TaskModel.operatorId == operatorId], join=[OrganizationModel])
 
     @ staticmethod
     def getStatusLabel(id: int):
