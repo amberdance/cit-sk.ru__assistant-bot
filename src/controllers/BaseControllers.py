@@ -68,6 +68,8 @@ class ThreadController:
                     appLog.error(f"{tasksDbThread.name} was terminated")
                     appLog.exception(error)
 
+                    return None
+
         tasksDbThread = Timer(10, tasksDbWorker)
         tasksDbThread.name = "TasksDbThread"
         tasksDbThread.start()

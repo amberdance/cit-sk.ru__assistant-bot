@@ -1,11 +1,5 @@
-
-
-
-from db.models.assistant import TaskModel
+from db.tables.assistant import TaskTable
 from db.tables.chat import ChatUserTable, ChatUserModel
 
 
-subscribers = ChatUserTable.getUserFields(
-                        ChatUserModel.astUserId, ChatUserModel.chatUserId, filter=[ChatUserModel.id ==9, ChatUserModel.isBlocked == False])
-print(subscribers[0])
-# print(Taskt.getTaskByChatUserId(1932081730))
+print(TaskTable.getTaskByChatUserId(686739701))

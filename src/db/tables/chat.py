@@ -1,5 +1,4 @@
 from typing import Union, List
-from sqlalchemy.engine.row import Row
 from .BaseTable import BaseTable
 from ..models.chat import ChatUserModel
 from ..context import TelegramBotDbContext
@@ -10,7 +9,7 @@ session = TelegramBotDbContext().getSession()
 class ChatUserTable(BaseTable):
 
     @staticmethod
-    def getUserFields(*fields: property, filter: list = [], join: list = None) -> Union[Row, List[Row]]:
+    def getUserFields(*fields: property, filter: list = [], join: list = None) -> List:
         query = session.query(*fields)
 
         if join is not None:

@@ -1,6 +1,6 @@
 
 import re
-from typing import Union, List
+from typing import Iterable, Union, List
 from ..tables.BaseTable import BaseTable
 from ..tables.chat import *
 from ..models.assistant import *
@@ -11,7 +11,7 @@ session = AssistantDbContext().getSession()
 
 class AstUserTable(BaseTable):
     @staticmethod
-    def getOrganization(*filter: property) -> List:
+    def getOrganization(*filter: Iterable) -> List:
         if(bool(filter) is False):
             raise Exception("Filter parameter is required")
 
@@ -19,7 +19,7 @@ class AstUserTable(BaseTable):
                              AstUserModel.username).join(OrganizationModel, AstUserModel).filter(*filter).all()
 
     @staticmethod
-    def getAstUserModel(*filter: property) -> Union[AstUserModel, List[AstUserModel]]:
+    def getAstUserModel(*filter: Iterable) -> Union[AstUserModel, List[AstUserModel]]:
         if(bool(filter) is False):
             raise Exception("Filter parameter is required")
 
@@ -31,16 +31,18 @@ class AstUserTable(BaseTable):
 class TaskTable(BaseTable):
 
     @staticmethod
-    def getTaskFields(*fields: property, filter: List = [], join: List = None) -> List:
-        query = session.query(*fields)
+    def getTaskFields(*fields: List, filter: Iterable = None, join: Iterable = None) -> List:
+        query = session.query(*fields).select_from(TaskModel)
 
         if join is not None:
-            query = query.join(*join)
+            query = query.outerjoin(*join)
+
+        return query.filter(*filter)
 
         return [row._asdict() for row in query.filter(*filter).all()]
 
     @staticmethod
-    def getTaskModel(*filter: property, join: List = None) -> Union[TaskModel, List[TaskModel]]:
+    def getTaskModel(*filter: List, join: Iterable = None) -> Union[TaskModel, List[TaskModel]]:
         query = session.query(TaskModel)
 
         if join is not None:
@@ -55,10 +57,38 @@ class TaskTable(BaseTable):
         operatorId = ChatUserTable.getUserFields(ChatUserModel.astUserId, filter=[
             ChatUserModel.chatId == chatUserId])[0]['astUserId']
 
-        return TaskTable.getTaskFields(TaskModel.id, TaskModel.descr, TaskModel.status, TaskModel.orderDate, OrganizationModel.title.label(
-            "org"), filter=[TaskModel.status == taskStatusId, TaskModel.operatorId == operatorId], join=[OrganizationModel])
+        queryFields = [
+            TaskModel.id,
+            TaskModel.descr,
+            TaskModel.status,
+            TaskModel.orderDate,
+            DeviceModel.hid,
+            ClientDeviceModel.title.label('clientTitle'),
+            OrganizationModel.title.label("orgTitle"),
+        ]
 
-    @ staticmethod
+        filter = [
+            TaskModel.status == taskStatusId,
+            TaskModel.operatorId == operatorId
+        ]
+
+        return session.query(TaskModel, TaskModel.id,
+                             TaskModel.descr,
+                             TaskModel.status,
+                             TaskModel.orderDate,
+                             DeviceModel.hid,
+                             ClientDeviceModel.title.label('clientTitle'),
+                             OrganizationModel.title.label("orgTitle"),
+                             ) \
+            .join(ClientDeviceModel, ClientDeviceModel.id == TaskModel.deviceId) \
+            .join(DeviceModel, DeviceModel.id == ClientDeviceModel.deviceId) \
+            .join(AstOrgUserModel, AstOrgUserModel.id == TaskModel.operatorId) \
+            .filter(TaskModel.status == taskStatusId, TaskModel.operatorId == operatorId) \
+            .all()
+
+        return TaskTable.getTaskFields(*queryFields, filter=filter, join=join)
+
+    @staticmethod
     def getStatusLabel(id: int):
         statusList = {
             0: 'Новая',

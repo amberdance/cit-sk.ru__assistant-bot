@@ -1,8 +1,7 @@
 from datetime import datetime
-from sqlalchemy import Text, Integer, Column, TIMESTAMP
+from sqlalchemy import VARCHAR, Integer, Column, TIMESTAMP, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql.schema import ForeignKey
-from sqlalchemy.sql.sqltypes import VARCHAR
 
 
 Base = declarative_base()
@@ -12,16 +11,17 @@ class TaskModel(Base):
     __tablename__ = 'asttasks'
 
     id: int = Column('id', Integer, primary_key=True, autoincrement=True)
+    deviceId: int = Column('deviceid', Integer,
+                           ForeignKey('astdevices   .id'))
     status: int = Column('status', Integer)
     clientOrgId: int = Column('clientorgid', Integer,
                               ForeignKey("astclientorgs.id"))
-    userId: int = Column('userid', Integer)
-    orderDate: datetime = Column('moddate', TIMESTAMP(
-        timezone=True), default=datetime.utcnow())
-    descr: str = Column('descr', Text)
-    serviceStartData: datetime = Column('servicestartdata')
-    serviceEndData: datetime = Column('serviceenddata')
-    serviceDescr: str = Column('servicedescr', Text)
+    userId: int = Column('userid', Integer, ForeignKey('astusers.id'))
+    orderDate: datetime = Column('moddate', TIMESTAMP)
+    descr: str = Column('descr', VARCHAR)
+    serviceStartData: datetime = Column('servicestartdata', TIMESTAMP)
+    serviceEndData: datetime = Column('serviceenddata', TIMESTAMP)
+    serviceDescr: str = Column('servicedescr', VARCHAR)
     operatorId: int = Column('operatorid', Integer, ForeignKey('astusers.id'))
     operatorOrgId: int = Column('operatororgid', Integer)
     categoryId: int = Column('categoryid', Integer)
@@ -51,7 +51,7 @@ class OrganizationModel(Base):
     __tablename__ = 'astclientorgs'
 
     id: int = Column('id', Integer, primary_key=True, autoincrement=True)
-    ownerID: int = Column('ownerid', Integer)
+    ownerId: int = Column('ownerid', Integer, ForeignKey('astusers.id'))
     title: int = Column('title', VARCHAR)
     email: int = Column('email', VARCHAR)
     address: str = Column('address', VARCHAR)
@@ -60,3 +60,30 @@ class OrganizationModel(Base):
     isService: str = Column('isservice', Integer)
     status: int = Column('status', Integer)
     isLogEnabled: int = Column('islogenabled', Integer)
+
+
+class DeviceModel(Base):
+    __tablename__ = 'astdevices'
+
+    id: int = Column('id', Integer, ForeignKey(
+        'astclientdevices.id'), primary_key=True, autoincrement=True)
+    status: int = Column('status', Integer)
+    hid: str = Column('hid', VARCHAR)
+    version: str = Column('version', VARCHAR)
+    domainName: str = Column('domainname', VARCHAR)
+    domainNameFull: str = Column('domainnamefull', VARCHAR)
+    host: str = Column('host', VARCHAR)
+    deleted: str = Column('deleted', Boolean)
+    osName: str = Column('osfullname', VARCHAR)
+
+
+class ClientDeviceModel(Base):
+    __tablename__ = 'astclientdevices'
+
+    id: int = Column('id', Integer, primary_key=True, autoincrement=True)
+    orgId: int = Column('orgid', Integer, ForeignKey('astclientorgs.id'))
+    userId: int = Column('userid', Integer, ForeignKey('astusers.id'))
+    deviceId: int = Column('deviceid', Integer, ForeignKey('astdevices.id'))
+    groupId: int = Column('groupid', Integer)
+    title: str = Column('title', VARCHAR)
+    description: str = Column('description', VARCHAR)
