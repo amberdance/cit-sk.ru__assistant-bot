@@ -10,10 +10,11 @@ class CommonCommandsController(BaseController):
         @bot.message_handler(commands=['help'])
         def helpCommand(message: Message):
 
-            htmlTemplate = "<b>Справка</b>\n /userid - id пользователя" + \
-                "\n\n <b>Работа с заявками</b> \n /task - информация о заявке по ее номеру \n /reg - регистрация у бота"
+            htmlTemplate = "<b>Справка:</b>\n /userid - id пользователя" + \
+                "\n\n <b>Работа с заявками:</b> \n /tasks - список заявок" + \
+                "\n /reg - регистрация у бота"
 
-            adminCommands = "\n\n<b>Debug</b> \n /dbgmsg \n /getme \n /getchat \n /chatid"
+            adminCommands = "\n\n<b>Debug:</b> \n /dbgmsg \n /getme \n /getchat \n /chatid"
 
             if ChatUserTable.isAdmin(message.from_user.id):
                 htmlTemplate += adminCommands

@@ -1,4 +1,5 @@
 
+import re
 from typing import Union, List
 from sqlalchemy.sql.functions import func
 from db.tables.BaseTable import BaseTable
@@ -10,7 +11,7 @@ session = AssistantDbContext().getSession()
 
 class AstUserTable(BaseTable):
     @staticmethod
-    def getOrganization(*filter: property) -> list:
+    def getOrganization(*filter: property) -> List:
         if(bool(filter) is False):
             raise Exception("Filter parameter is required")
 
@@ -30,17 +31,13 @@ class AstUserTable(BaseTable):
 class TaskTable(BaseTable):
 
     @staticmethod
-    def getTaskFields(*fields: property, filter: list = [], join: list = None) -> list:
-        """Return dictionary data representaion"""
-
+    def getTaskFields(*fields: property, filter: List = [], join: List = None) -> List:
         query = session.query(*fields)
 
         if join is not None:
             query = query.join(*join)
 
-        result = [row._asdict() for row in query.filter(*filter).all()]
-
-        return result[0] if len(result) == 1 else result
+        return [row._asdict() for row in query.filter(*filter).all()]
 
     @staticmethod
     def getFreshTask(*filter: property) -> Union[TaskModel, List[TaskModel]]:
@@ -50,14 +47,14 @@ class TaskTable(BaseTable):
         return result[0] if len(result) == 1 else result
 
     @staticmethod
-    def getTaskModel(*filter: property) -> TaskModel:
+    def getTaskModel(*filter: property, join: List = None) -> TaskModel:
         result = [row for row in session.query(
             TaskModel).filter(*filter).all()]
 
         return result[0] if len(result) == 1 else result
 
     @staticmethod
-    def getTaskMeta(*filter: property) -> list:
+    def getTaskMeta(*filter: property) -> List:
         result = session.query(TaskModel.id,  TaskModel.orderDate, TaskModel.descr, TaskModel.status,
                                AstUserModel.username).join(AstUserModel).filter(*filter).all()
 
@@ -65,10 +62,30 @@ class TaskTable(BaseTable):
 
     @ staticmethod
     def getStatusLabel(id: int):
-        statusList = ('Новая', 'Принята в работу',
-                      'Отработана', 'Отменена', 'Отклонена')
+        statusList = {
+            0: 'Новая',
+            1: 'Принята в работу',
+            2: 'Отработана',
+            3: 'Отменена',
+            4: 'Отклонена'
+        }
 
         return statusList[id]
+
+    @ staticmethod
+    def getStatusId(key: str):
+        idList = {
+            'Новая': 0,
+            'Принята в работу': 1,
+            'Отработана': 2,
+            'Отменена': 3,
+            'Отклонена': 4
+        }
+
+        matchedKey = [k for k in idList.keys() if re.findall(
+            f"{key}+.*", k, re.IGNORECASE)]
+
+        return idList[matchedKey[0]] if bool(matchedKey) else idList[0]
 
     @ staticmethod
     def addTask(user: TaskModel) -> TaskModel:

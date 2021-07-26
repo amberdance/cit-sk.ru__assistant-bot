@@ -44,6 +44,7 @@ class AstOrgUserModel(Base):
     id: int = Column('id', Integer, primary_key=True, autoincrement=True)
     orgId: int = Column('orgid', Integer, ForeignKey('astclientorgs.id'))
     userId: int = Column('userid', Integer, ForeignKey('astusers.id'))
+    status: int = Column('status', Integer)
 
 
 class OrganizationModel(Base):

@@ -1,3 +1,5 @@
+from io import SEEK_END
+import time
 import re
 from telebot import types
 from controllers.BaseControllers import BaseController, ThreadController, Message, TeleBot, CallbackQuery, appLog
@@ -10,8 +12,9 @@ class DatabaseCommandsController(BaseController):
     @staticmethod
     def initializeMessageHandler(bot: TeleBot) -> None:
 
-        ThreadController.startTaskDbThreading(bot)
+        # ThreadController.startTaskDbThreading(bot)
 
+        # To do: добавить отмену для регистрации
         @bot.message_handler(commands=["reg"])
         def registerCommandStepOne(message: Message):
             # сперва проверка на наличие пользователя в базе данных
@@ -24,7 +27,7 @@ class DatabaseCommandsController(BaseController):
 
             if(message.chat.type != "private"):
                 bot.reply_to(
-                    message, f"{message.from_user.full_name}, напишите мне в ЛС")
+                    message, f"{message.from_user.full_name}, для регистрации напишите мне в ЛС /reg")
 
                 return bot.register_next_step_handler(message, registerCommandStepTwo)
 
@@ -41,7 +44,8 @@ class DatabaseCommandsController(BaseController):
                 return bot.register_next_step_handler(message, registerCommandStepTwo)
 
             # список организаций по соответствию email, указанным пользвателем
-            orgList = AstUserTable.getOrganization(AstUserModel.email == email)
+            orgList = AstUserTable.getOrganization(
+                AstUserModel.email == email, AstOrgUserModel.status == 1)
 
             # вызываем данный шаг до тех пор, пока не будет найдено соответствие по email
             if(bool(orgList) is False):
@@ -72,42 +76,43 @@ class DatabaseCommandsController(BaseController):
             bot.send_message(
                 message.chat.id, f"<b>{username}, нашел список организаций за которыми вы закреплены:</b>\n{orgLabels}\n<b>Все верно</b> ?", reply_markup=key, parse_mode="html")
 
-        @bot.message_handler(regexp="task")
-        def getTaskCommand(message: Message):
-            bot.send_chat_action(message.chat.id, 'typing')
+        # Информация о заявках со статусом "новая" и по соответствию организации
+        @bot.message_handler(func=lambda message: re.findall(r"tasks", message.text) and message.chat.type == 'private')
+        def getTasksCommand(message: Message) -> None:
+            chatId = message.chat.id
+            messageParams = message.text.split("-")
+            statusId = 0
 
-            taskId = re.findall("\d.*", message.text)
+            if(len(messageParams) > 1):
+                statusId = TaskTable.getStatusId(messageParams[1])
 
-            if bool(taskId) is False:
-                return BaseController.sendMessage(
-                    bot, message, "Укажите команду с номером заявки, например: /task666")
+            if(not ChatUserTable.isUserRegistered(chatId)):
+                bot.send_message(chatId, "Сперва пройдите регистрацию /reg")
 
-            try:
-                # Получаем заявку по соответствию номера и id организации, к которой прикреплен пользователь
-                clientOrgId = ChatUserTable.getUserFields(ChatUserModel.astOrgId, filter=[
-                    ChatUserModel.chatUserId == message.from_user.id]).astOrgId
+            operatorId = ChatUserTable.getUserFields(ChatUserModel.astUserId, filter=[
+                ChatUserModel.chatId == chatId])[0]
 
-                taskMeta = TaskTable.getTaskMeta(
-                    TaskModel.id == taskId[0], TaskModel.clientOrgId == clientOrgId)
+            tasks = TaskTable.getTaskFields(TaskModel.id, TaskModel.descr, TaskModel.status, TaskModel.orderDate, OrganizationModel.title.label(
+                "org"), filter=[TaskModel.status == statusId, TaskModel.operatorId == operatorId], join=[OrganizationModel])
 
-                if len(taskMeta) == 0:
-                    return BaseController.sendMessage(
-                        bot, message, f"Заявка номер <b>{taskId[0]}</b> не найдена", parseMode="html")
+            if(bool(tasks) is False):
+                return bot.send_message(chatId, "Заявок не найдено")
 
-                BaseController.sendMessage(
-                    bot, message, f"<b>Номер заявки:</b> {taskMeta.id}," +
-                    f"\n<b>Дата создания:</b> {taskMeta.orderDate}," +
-                    f"\n<b>Статус:</b> {TaskTable.getStatusLabel(taskMeta.status)}," +
-                    f"\n<b>Неисправность:</b> {taskMeta.descr}" +
-                    f"\n<b>Оператор:</b> {taskMeta.username},",
-                    parseMode="html")
+            for i, task in enumerate(tasks):
+                bot.send_chat_action(chatId, 'typing')
+                task['status'] = TaskTable.getStatusLabel(task['status'])
+                bot.send_message(chatId, f"<b>Номер заявки:</b> {task['id']}" +
+                                 f"\n<b>Статус:</b> {task['status']}" +
+                                 f"\n<b>Организация:</b> {task['org']}" +
+                                 f"\n<b>Дата создания:</b> {task['orderDate']}" +
+                                 f"\n<b>Неисправность:</b> {task['descr']}", parse_mode="html")
 
-            except Exception as error:
-                bot.send_message(message.chat.id, "Что-то пошло не так")
-                appLog.exception(error)
+                if(i > 10):
+                    return bot.send_message(chatId, "Найдено слишком много заявок, используйте другие критерии поиска или как-нибудь в другой раз")
 
         @bot.callback_query_handler(func=lambda message: True)
         def registrationInlineHandler(msg: CallbackQuery):
+
             payload = msg.data.split("|")
 
             # обработка кнопки отмены
