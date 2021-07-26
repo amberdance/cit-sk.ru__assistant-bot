@@ -12,7 +12,7 @@ class DatabaseCommandsController(BaseController):
     @staticmethod
     def initializeMessageHandler(bot: TeleBot) -> None:
 
-        # ThreadController.startTaskDbThreading(bot)
+        ThreadController.startTaskDbThreading(bot)
 
         # To do: добавить отмену для регистрации
         @bot.message_handler(commands=["reg"])
@@ -83,7 +83,7 @@ class DatabaseCommandsController(BaseController):
             statusId = 0
 
             if(len(messageParams) > 1):
-                statusId = TaskTable.getStatusId(messageParams[1])
+                statusId = TaskTable.getStatusId(messageParams[1].strip())
 
             if(not ChatUserTable.isUserRegistered(chatId)):
                 bot.send_message(chatId, "Сперва выполните регистрацию /reg")
@@ -136,10 +136,11 @@ class DatabaseCommandsController(BaseController):
                     ChatUserTable.addUser(ChatUserModel(**fields))
                     bot.send_message(
                         msg.message.chat.id, f"{user.username}, регистрация прошла успешно!")
+
                 except Exception:
                     bot.send_message(
                         msg.message.chat.id, "Что-то пошло не так")
-                    appLog.error(Exception)
+                    appLog.exception(Exception)
 
             # удаление кнопок
             bot.edit_message_reply_markup(

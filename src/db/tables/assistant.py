@@ -23,7 +23,9 @@ class AstUserTable(BaseTable):
         if(bool(filter) is False):
             raise Exception("Filter parameter is required")
 
-        return session.query(AstUserModel).filter(*filter).all()
+        result = session.query(AstUserModel).filter(*filter).all()
+
+        return result[0] if len(result) == 1 else result
 
 
 class TaskTable(BaseTable):
@@ -51,7 +53,7 @@ class TaskTable(BaseTable):
     @staticmethod
     def getTaskByChatUserId(chatUserId: int, taskStatusId: int = 0) -> List:
         operatorId = ChatUserTable.getUserFields(ChatUserModel.astUserId, filter=[
-            ChatUserModel.chatId == chatUserId])[0]
+            ChatUserModel.chatId == chatUserId])[0]['astUserId']
 
         return TaskTable.getTaskFields(TaskModel.id, TaskModel.descr, TaskModel.status, TaskModel.orderDate, OrganizationModel.title.label(
             "org"), filter=[TaskModel.status == taskStatusId, TaskModel.operatorId == operatorId], join=[OrganizationModel])

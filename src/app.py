@@ -10,12 +10,10 @@ if __name__ == "__main__":
     logger = logging.getLogger("Application")
 
     logging.getLogger("urllib3").setLevel(logging.ERROR)
-    logging.basicConfig(handlers=[logging.FileHandler(logFile, "w")],
+    logging.basicConfig(handlers=[logging.FileHandler(logFile, "a")],
                         format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
                         datefmt='%Y/%m/%d %H:%M:%S',
                         level=logging.DEBUG)
-
-    os.chmod(logFile, 0o777)
 
     logger.info("Application was started")
 

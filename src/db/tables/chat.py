@@ -16,9 +16,7 @@ class ChatUserTable(BaseTable):
         if join is not None:
             query = query.join(*join)
 
-        result = query.filter(*filter).all()
-
-        return result[0] if len(result) == 1 else result
+        return [row._asdict() for row in query.filter(*filter).all()]
 
     @staticmethod
     def getUserModel(*filter: property) -> Union[ChatUserModel, List[ChatUserModel]]:

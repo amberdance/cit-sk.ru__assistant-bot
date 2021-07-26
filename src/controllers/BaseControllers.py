@@ -5,7 +5,8 @@ from threading import Thread, Timer
 from typing import Any, Union
 from telebot import TeleBot
 from telebot.types import CallbackQuery, Message
-from db.tables.assistant import TaskTable, TaskModel
+from db.tables.assistant import TaskTable
+from db.tables.chat import ChatUserTable, ChatUserModel
 
 
 appLog: logging.Logger = logging.getLogger("Application")
@@ -31,27 +32,45 @@ class ThreadController:
 
         # Worker для потока TasksDbThread
         def tasksDbWorker(interval: int = 300):
+            appLog.info(f"{tasksDbThread.name} was started")
+
             while True:
                 try:
-                    bot.send_chat_action(686739701, 'typing')
-                    task = TaskTable.getFreshTask(
-                        TaskModel.clientOrgId == 135)[0]
-                    bot.send_message(
-                        686739701, f"Database polling with 5 min timeout.\nRandom task<b>№ {task.id}</b> от <b>{task.orderDate}</b>: \n<b>{task.descr}</b>", parse_mode="html")
+                    subscribers = ChatUserTable.getUserFields(
+                        ChatUserModel.username, ChatUserModel.chatUserId, filter=[ChatUserModel.isBlocked == False])
 
+                    for user in subscribers:
+                        chatId = user['chatUserId']
+                        tasks = TaskTable.getTaskByChatUserId(chatId)
+
+                        if(len(tasks) == 0):
+                            continue
+
+                        for task in tasks:
+                            bot.send_chat_action(chatId, 'typing')
+                            bot.send_message(chatId, f"{user['username']} У вас есть новые заявки:\n" +
+                                             f"<b>Номер заявки:</b> {task['id']}" +
+                                             f"\n<b>Дата создания:</b> {task['orderDate']}" +
+                                             f"\n<b>Статус:</b> {TaskTable.getStatusLabel(task['status'])}" +
+                                             f"\n<b>Организация:</b> {task['org']}" +
+                                             f"\n<b>Неисправность:</b> {task['descr']}", parse_mode="html")
+
+                            # Интервал перед отправкой сообщений
+                            time.sleep(2)
+
+                        # Интервал перед итерированиями пользователей
+                        time.sleep(5)
+
+                    # Интервал перед запросами базы данных
                     time.sleep(interval)
 
                 except Exception as error:
                     appLog.error(f"{tasksDbThread.name} was terminated")
                     appLog.exception(error)
 
-                    return None
-
         tasksDbThread = Timer(10, tasksDbWorker)
         tasksDbThread.name = "TasksDbThread"
         tasksDbThread.start()
-
-        appLog.info(f"{tasksDbThread.name} was started")
 
         # Запуск потока на проверку активности потока TasksDbThread
         def tasksDbThreadAliveChecker() -> None:

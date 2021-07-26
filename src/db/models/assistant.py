@@ -16,7 +16,7 @@ class TaskModel(Base):
     clientOrgId: int = Column('clientorgid', Integer,
                               ForeignKey("astclientorgs.id"))
     userId: int = Column('userid', Integer)
-    orderDate: datetime = Column('orderdate', TIMESTAMP(
+    orderDate: datetime = Column('moddate', TIMESTAMP(
         timezone=True), default=datetime.utcnow())
     descr: str = Column('descr', Text)
     serviceStartData: datetime = Column('servicestartdata')
