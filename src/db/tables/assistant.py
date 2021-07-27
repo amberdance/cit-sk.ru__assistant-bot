@@ -1,6 +1,7 @@
 
 import re
 from typing import Iterable, Union, List
+from sqlalchemy.sql.expression import func
 from ..tables.BaseTable import BaseTable
 from ..tables.chat import *
 from ..models.assistant import *
@@ -15,8 +16,16 @@ class AstUserTable(BaseTable):
         if(bool(filter) is False):
             raise Exception("Filter parameter is required")
 
-        return session.query(OrganizationModel.id.label('orgId'), OrganizationModel.title, AstOrgUserModel.id, AstUserModel.id.label('userId'), AstUserModel.email,
-                             AstUserModel.username).join(OrganizationModel, AstUserModel).filter(*filter).all()
+        fields = (
+            OrganizationModel.id.label('orgId'),
+            AstUserModel.id.label('userId'),
+            OrganizationModel.title,
+            AstOrgUserModel.id,
+            AstUserModel.email,
+            AstUserModel.username
+        )
+
+        return session.query(*fields).select_from(OrganizationModel).join(AstOrgUserModel, AstUserModel).filter(*filter).all()
 
     @staticmethod
     def getAstUserModel(*filter: Iterable) -> Union[AstUserModel, List[AstUserModel]]:
@@ -37,8 +46,6 @@ class TaskTable(BaseTable):
         if join is not None:
             query = query.outerjoin(*join)
 
-        return query.filter(*filter)
-
         return [row._asdict() for row in query.filter(*filter).all()]
 
     @staticmethod
@@ -57,36 +64,30 @@ class TaskTable(BaseTable):
         operatorId = ChatUserTable.getUserFields(ChatUserModel.astUserId, filter=[
             ChatUserModel.chatId == chatUserId])[0]['astUserId']
 
-        queryFields = [
+        queryFields = (
             TaskModel.id,
             TaskModel.descr,
             TaskModel.status,
-            TaskModel.orderDate,
+            func.to_char(TaskModel.orderDate,
+                         "dd.mm.YYYY HH:ss:mm").label('orderDate'),
             DeviceModel.hid,
+            TaskModel.operatorOrgId.label('operatorOrgId'),
             ClientDeviceModel.title.label('clientTitle'),
             OrganizationModel.title.label("orgTitle"),
-        ]
+        )
 
-        filter = [
+        filter = (
             TaskModel.status == taskStatusId,
             TaskModel.operatorId == operatorId
-        ]
+        )
 
-        return session.query(TaskModel, TaskModel.id,
-                             TaskModel.descr,
-                             TaskModel.status,
-                             TaskModel.orderDate,
-                             DeviceModel.hid,
-                             ClientDeviceModel.title.label('clientTitle'),
-                             OrganizationModel.title.label("orgTitle"),
-                             ) \
-            .join(ClientDeviceModel, ClientDeviceModel.id == TaskModel.deviceId) \
+        return session.query(*queryFields) \
+            .select_from(TaskModel) \
+            .join(OrganizationModel, OrganizationModel.id == TaskModel.clientOrgId) \
+            .join(ClientDeviceModel, ClientDeviceModel.deviceId == TaskModel.deviceId) \
             .join(DeviceModel, DeviceModel.id == ClientDeviceModel.deviceId) \
-            .join(AstOrgUserModel, AstOrgUserModel.id == TaskModel.operatorId) \
-            .filter(TaskModel.status == taskStatusId, TaskModel.operatorId == operatorId) \
-            .all()
-
-        return TaskTable.getTaskFields(*queryFields, filter=filter, join=join)
+            .join(AstUserModel, AstUserModel.id == TaskModel.operatorId) \
+            .filter(*filter).all()
 
     @staticmethod
     def getStatusLabel(id: int):

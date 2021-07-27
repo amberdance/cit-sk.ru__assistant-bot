@@ -1,5 +1,6 @@
+from db.models.assistant import TaskModel
 from db.tables.assistant import TaskTable
-from db.tables.chat import ChatUserTable, ChatUserModel
 
 
-print(TaskTable.getTaskByChatUserId(686739701))
+print(len(TaskTable.getTaskFields(TaskModel.id, filter=[
+      TaskModel.status == 0, TaskModel.operatorOrgId == 139])))

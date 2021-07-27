@@ -1,5 +1,4 @@
 from config import IS_DEBUG_MODE, APP_PATH
-import os
 import logging
 
 
@@ -9,6 +8,8 @@ if __name__ == "__main__":
     logLevel = logging.DEBUG if IS_DEBUG_MODE else logging.ERROR
     logger = logging.getLogger("Application")
 
+    logging.getLogger(
+        'pymorphy2.opencorpora_dict.wrapper').setLevel(logging.ERROR)
     logging.getLogger("urllib3").setLevel(logging.ERROR)
     logging.basicConfig(handlers=[logging.FileHandler(logFile, "a")],
                         format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',

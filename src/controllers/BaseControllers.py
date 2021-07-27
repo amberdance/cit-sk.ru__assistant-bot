@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod
 import logging
 import time
-from threading import Thread, Timer
-from typing import Any, Union
+from threading import Thread
+from typing import Iterable, Union
 from telebot import TeleBot
-from telebot.types import CallbackQuery, Message
+from telebot.types import CallbackQuery, Message, InlineKeyboardMarkup, InlineKeyboardButton
+from pymorphy2 import MorphAnalyzer
 from db.tables.assistant import TaskTable
 from db.tables.chat import ChatUserTable, ChatUserModel
 
@@ -18,10 +19,28 @@ class BaseController(ABC):
     def initializeMessageHandler(bot: TeleBot) -> None:
         ...
 
-    def sendMessage(bot: TeleBot, message: Union[Message, CallbackQuery],  text: Any, parseMode: str = None):
-        """Отправляет сообщение в лс, если боту пишут в группе, и в общий чат, если пишут в лс"""
+    @staticmethod
+    def sendMessage(bot: TeleBot, message: Union[Message, CallbackQuery],  text: str, parseMode: str = None):
+        """
+        Отправляет сообщение в лс, если боту пишут в группе, и в общий чат, если пишут в лс
+        """
         bot.send_message(message.chat.id, text, parse_mode=parseMode) if(
             message.chat.type == 'private') else bot.send_message(message.from_user.id, text, parse_mode=parseMode)
+
+    @staticmethod
+    def generateInlineButtons(buttons: Iterable[InlineKeyboardButton]) -> InlineKeyboardMarkup:
+        markup = InlineKeyboardMarkup()
+        markup.add(*buttons)
+
+        return markup
+
+    @staticmethod
+    def getTaskStringTemplate(task: tuple) -> str:
+        return (f"<b>Номер заявки:</b> {task.id}" +
+                f"\n<b>Организация:</b> {task.orgTitle}" +
+                f"\n<b>Дата создания:</b> {task.orderDate}" +
+                f"\n<b>Устройство:</b> {task.hid} {task.clientTitle}" +
+                f"\n<b>Неисправность:</b> {task.descr}")
 
 
 class ThreadController:
@@ -37,7 +56,7 @@ class ThreadController:
             while True:
                 try:
                     subscribers = ChatUserTable.getUserFields(
-                        ChatUserModel.username, ChatUserModel.chatUserId, filter=[ChatUserModel.isBlocked == False])
+                        ChatUserModel.username, ChatUserModel.chatUserId, filter=[ChatUserModel.chatUserId == 686739701, ChatUserModel.isBlocked == False])
 
                     for user in subscribers:
                         chatId = user['chatUserId']
@@ -46,17 +65,35 @@ class ThreadController:
                         if(len(tasks) == 0):
                             continue
 
+                        morphAnalyzer = MorphAnalyzer()
+
+                        decl1 = morphAnalyzer.parse(
+                            'новая')[0].make_agree_with_number(len(tasks)).word
+
+                        decl2 = morphAnalyzer.parse(
+                            'заявка')[0].make_agree_with_number(len(tasks)).word
+
+                        headingMessageId = bot.send_message(
+                            chatId, f"У вас есть {decl1} {decl2}").message_id
+
                         for task in tasks:
                             bot.send_chat_action(chatId, 'typing')
-                            bot.send_message(chatId, "У вас есть новые заявки:\n" +
-                                             f"\n<b>Статус:</b> {TaskTable.getStatusLabel(task['status'])}" +
-                                             f"\n<b>Дата создания:</b> {task['orderDate']}" +
-                                             f"<b>Номер заявки:</b> {task['id']}" +
-                                             f"\n<b>Организация:</b> {task['org']}" +
-                                             f"\n<b>Неисправность:</b> {task['descr']}", parse_mode="html")
+
+                            buttons = (
+                                InlineKeyboardButton(
+                                    'Принять', callback_data='tasks:|{"id":%s,"status":1, "orgId":%s, "msgId":%s}' % (task.id, task.operatorOrgId, headingMessageId)),
+                                # InlineKeyboardButton(
+                                #     "Отработать", callback_data='tasks:|{"id":%s,"status":2, "orgId":%s, "msgId":%s}' % (task.id, task.operatorOrgId, headingMessageId))
+                            )
+
+                            markup = BaseController.generateInlineButtons(
+                                buttons)
+
+                            bot.send_message(chatId, BaseController.getTaskStringTemplate(
+                                task), parse_mode="html", reply_markup=markup)
 
                             # Интервал перед отправкой сообщений
-                            time.sleep(2)
+                            time.sleep(1)
 
                         # Интервал перед итерированиями пользователей
                         time.sleep(5)
@@ -70,7 +107,7 @@ class ThreadController:
 
                     return None
 
-        tasksDbThread = Timer(10, tasksDbWorker)
+        tasksDbThread = Thread(target=tasksDbWorker)
         tasksDbThread.name = "TasksDbThread"
         tasksDbThread.start()
 

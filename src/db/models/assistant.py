@@ -1,6 +1,7 @@
 from datetime import datetime
-from sqlalchemy import VARCHAR, Integer, Column, TIMESTAMP, Boolean
+from sqlalchemy import Column, VARCHAR, Integer, TIMESTAMP, Boolean
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.sql.expression import false
 from sqlalchemy.sql.schema import ForeignKey
 
 
@@ -12,15 +13,17 @@ class TaskModel(Base):
 
     id: int = Column('id', Integer, primary_key=True, autoincrement=True)
     deviceId: int = Column('deviceid', Integer,
-                           ForeignKey('astdevices   .id'))
+                           ForeignKey('astclientdevices.id'))
     status: int = Column('status', Integer)
     clientOrgId: int = Column('clientorgid', Integer,
                               ForeignKey("astclientorgs.id"))
-    userId: int = Column('userid', Integer, ForeignKey('astusers.id'))
+    userId: int = Column('userid', Integer)
     orderDate: datetime = Column('moddate', TIMESTAMP)
     descr: str = Column('descr', VARCHAR)
-    serviceStartData: datetime = Column('servicestartdata', TIMESTAMP)
-    serviceEndData: datetime = Column('serviceenddata', TIMESTAMP)
+    serviceStartData: datetime = Column(
+        'servicestartdata', TIMESTAMP(timezone=False))
+    serviceEndData: datetime = Column(
+        'serviceenddata', TIMESTAMP(timezone=False))
     serviceDescr: str = Column('servicedescr', VARCHAR)
     operatorId: int = Column('operatorid', Integer, ForeignKey('astusers.id'))
     operatorOrgId: int = Column('operatororgid', Integer)
@@ -65,8 +68,7 @@ class OrganizationModel(Base):
 class DeviceModel(Base):
     __tablename__ = 'astdevices'
 
-    id: int = Column('id', Integer, ForeignKey(
-        'astclientdevices.id'), primary_key=True, autoincrement=True)
+    id: int = Column('id', Integer,  primary_key=True, autoincrement=True)
     status: int = Column('status', Integer)
     hid: str = Column('hid', VARCHAR)
     version: str = Column('version', VARCHAR)
