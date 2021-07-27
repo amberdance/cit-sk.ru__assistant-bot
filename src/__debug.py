@@ -1,6 +1,5 @@
-from db.models.assistant import TaskModel
-from db.tables.assistant import TaskTable
+from db.tables.chat import ChatUserTable, ChatUserModel
 
 
-print(len(TaskTable.getTaskFields(TaskModel.id, filter=[
-      TaskModel.status == 0, TaskModel.operatorOrgId == 139])))
+print(ChatUserTable.getUserFields(ChatUserModel.astUserId, filter=[
+            ChatUserModel.chatId == chatUserId])[0]['astUserId'])

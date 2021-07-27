@@ -51,12 +51,15 @@ class ThreadController:
 
         # Worker для потока TasksDbThread
         def tasksDbWorker(interval: int = 300):
-            appLog.info(f"{tasksDbThread.name} was started")
+            appLog.info(f"{tasksDbThread.name} is active")
 
             while True:
                 try:
-                    subscribers = ChatUserTable.getUserFields(
-                        ChatUserModel.username, ChatUserModel.chatUserId, filter=[ChatUserModel.chatUserId == 686739701, ChatUserModel.isBlocked == False])
+                    subscribers = ChatUserTable.getUserFields(ChatUserModel.chatUserId, filter=[
+                                                              ChatUserModel.isBlocked == False])
+
+                    if(len(subscribers) == 0):
+                        continue
 
                     for user in subscribers:
                         chatId = user['chatUserId']
@@ -74,7 +77,7 @@ class ThreadController:
                             'заявка')[0].make_agree_with_number(len(tasks)).word
 
                         headingMessageId = bot.send_message(
-                            chatId, f"У вас есть {decl1} {decl2}").message_id
+                            chatId, f"У вас есть {len(tasks)} {decl1} {decl2}").message_id
 
                         for task in tasks:
                             bot.send_chat_action(chatId, 'typing')
@@ -112,12 +115,12 @@ class ThreadController:
         tasksDbThread.start()
 
         # Запуск потока на проверку активности потока TasksDbThread
-        def tasksDbThreadAliveChecker() -> None:
+        def tasksDbThreadAliveChecker(interval=60) -> None:
             while True:
                 if not tasksDbThread.is_alive():
-                    tasksDbThread.join()
+                    tasksDbThread.start()
                     appLog.info(f"{tasksDbThread.name} was restarted")
 
-                time.sleep(60)
+                time.sleep(interval)
 
         Thread(target=tasksDbThreadAliveChecker).start()

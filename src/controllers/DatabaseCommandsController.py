@@ -13,7 +13,7 @@ class DatabaseCommandsController(BaseController):
 
         ThreadController.startTaskDbThreading(bot)
 
-        # To do: добавить отмену для регистрации
+        # Todo: добавить отмену для регистрации
         @bot.message_handler(commands=["reg"])
         def registerCommandStepOne(message: Message):
 
@@ -82,8 +82,7 @@ class DatabaseCommandsController(BaseController):
                 statusId = TaskTable.getStatusId(messageParams[1].strip())
 
             if(not ChatUserTable.isUserRegistered(chatId)):
-                bot.send_message(
-                    chatId, "Сперва выполните регистрацию /reg")
+                return bot.send_message(chatId, "Сперва выполните регистрацию /reg")
 
             try:
                 tasks = TaskTable.getTaskByChatUserId(chatId, statusId)

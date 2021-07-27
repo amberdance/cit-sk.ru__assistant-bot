@@ -1,6 +1,5 @@
 from telebot.types import Message
 from controllers.BaseControllers import BaseController, TeleBot
-from db.tables.chat import ChatUserTable
 
 
 class CommonCommandsController(BaseController):
@@ -11,13 +10,9 @@ class CommonCommandsController(BaseController):
         def helpCommand(message: Message):
 
             htmlTemplate = "<b>Справка:</b>\n /userid - id пользователя" + \
-                "\n\n <b>Работа с заявками:</b> \n /tasks - список заявок" + \
-                "\n /reg - регистрация у бота"
-
-            adminCommands = "\n\n<b>Debug:</b> \n /dbgmsg \n /getme \n /getchat \n /chatid"
-
-            if ChatUserTable.isAdmin(message.from_user.id):
-                htmlTemplate += adminCommands
+                "\n /tasks - список заявок" + \
+                "\n\n <b>Работа с заявками:</b>" +\
+                "\n /reg - регистрация нового пользователя"
 
             bot.send_message(
-                message.chat.id, parse_mode="html", text=htmlTemplate)
+                message.chat.id, htmlTemplate, parse_mode="html")
