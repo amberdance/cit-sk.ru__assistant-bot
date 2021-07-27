@@ -10,9 +10,9 @@ class CommonCommandsController(BaseController):
         def helpCommand(message: Message):
 
             htmlTemplate = "<b>Справка:</b>\n /userid - id пользователя" + \
-                "\n /tasks - список заявок" + \
-                "\n\n <b>Работа с заявками:</b>" +\
-                "\n /reg - регистрация нового пользователя"
+                "\n/tasks - список заявок" + \
+                "\n<b>Работа с заявками:</b>" +\
+                "\n/reg - регистрация нового пользователя"
 
             bot.send_message(
                 message.chat.id, htmlTemplate, parse_mode="html")

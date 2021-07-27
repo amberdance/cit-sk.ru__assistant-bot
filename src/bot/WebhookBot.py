@@ -22,6 +22,9 @@ class WebhookBot():
         self.__app.router.add_post('/{token}/', self.handle)
         self.initializeControllers()
 
+        logging.getLogger('Application')
+        logging.info("WebhookBot initialized")
+
         web.run_app(
             self.__app,
             host=WEBHOOK_LISTEN,

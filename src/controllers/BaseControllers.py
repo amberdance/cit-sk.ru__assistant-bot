@@ -50,22 +50,22 @@ class ThreadController:
         """TasksDbThread"""
 
         # Worker для потока TasksDbThread
-        def tasksDbWorker(interval: int = 300):
-            appLog.info(f"{tasksDbThread.name} is active")
+        def tasksDbWorker(interval: int = 60):
+            appLog.info(f"{tasksDbThread} started")
 
             while True:
                 try:
-                    subscribers = ChatUserTable.getUserFields(ChatUserModel.chatUserId, filter=[
-                                                              ChatUserModel.isBlocked == False])
+                    subscribers = (ChatUserTable.getUserFields(ChatUserModel.chatUserId, filter=[
+                                                              ChatUserModel.isBlocked == False]),)
 
-                    if(len(subscribers) == 0):
+                    if(bool(subscribers) is False):
                         continue
 
                     for user in subscribers:
                         chatId = user['chatUserId']
                         tasks = TaskTable.getTaskByChatUserId(chatId)
 
-                        if(len(tasks) == 0):
+                        if(bool(tasks) is False):
                             continue
 
                         morphAnalyzer = MorphAnalyzer()
@@ -105,22 +105,8 @@ class ThreadController:
                     time.sleep(interval)
 
                 except Exception as error:
-                    appLog.error(f"{tasksDbThread.name} was terminated")
                     appLog.exception(error)
-
-                    return None
 
         tasksDbThread = Thread(target=tasksDbWorker)
         tasksDbThread.name = "TasksDbThread"
         tasksDbThread.start()
-
-        # Запуск потока на проверку активности потока TasksDbThread
-        def tasksDbThreadAliveChecker(interval=60) -> None:
-            while True:
-                if not tasksDbThread.is_alive():
-                    tasksDbThread.start()
-                    appLog.info(f"{tasksDbThread.name} was restarted")
-
-                time.sleep(interval)
-
-        Thread(target=tasksDbThreadAliveChecker).start()

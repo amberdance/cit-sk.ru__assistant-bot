@@ -1,7 +1,9 @@
 
 import re
+import logging
 from typing import Iterable, Union, List
 from sqlalchemy.sql.expression import func
+from sqlalchemy.exc import OperationalError
 from ..tables.BaseTable import BaseTable
 from ..tables.chat import *
 from ..models.assistant import *
@@ -60,9 +62,12 @@ class TaskTable(BaseTable):
         return result[0] if len(result) == 1 else result
 
     @staticmethod
-    def getTaskByChatUserId(chatUserId: int, taskStatusId: int = 0) -> List:
+    def getTaskByChatUserId(chatUserId: int, statusId: int = 0) -> List:
+
+        global session
+
         operatorId = ChatUserTable.getUserFields(ChatUserModel.astUserId, filter=[
-            ChatUserModel.chatId == chatUserId])[0]['astUserId']
+            ChatUserModel.chatId == chatUserId])['astUserId']
 
         queryFields = (
             TaskModel.id,
@@ -77,17 +82,26 @@ class TaskTable(BaseTable):
         )
 
         filter = (
-            TaskModel.status == taskStatusId,
+            TaskModel.status == statusId,
             TaskModel.operatorId == operatorId
         )
 
-        return session.query(*queryFields) \
-            .select_from(TaskModel) \
-            .join(OrganizationModel, OrganizationModel.id == TaskModel.clientOrgId) \
-            .join(ClientDeviceModel, ClientDeviceModel.deviceId == TaskModel.deviceId) \
-            .join(DeviceModel, DeviceModel.id == ClientDeviceModel.deviceId) \
-            .join(AstUserModel, AstUserModel.id == TaskModel.operatorId) \
-            .filter(*filter).all()
+        try:
+            return session.query(*queryFields) \
+                .select_from(TaskModel) \
+                .join(OrganizationModel, OrganizationModel.id == TaskModel.clientOrgId) \
+                .join(ClientDeviceModel, ClientDeviceModel.deviceId == TaskModel.deviceId) \
+                .join(DeviceModel, DeviceModel.id == ClientDeviceModel.deviceId) \
+                .join(AstUserModel, AstUserModel.id == TaskModel.operatorId) \
+                .filter(*filter).all()
+
+        except OperationalError:
+            logging.getLogger('Application').exception(
+                'Server closed the connection')
+
+            session = AssistantDbContext().getSession()
+
+            logging.getLogger('Application').info('Reconnected to server')
 
     @staticmethod
     def getStatusLabel(id: int):

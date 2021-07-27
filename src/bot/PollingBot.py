@@ -10,10 +10,13 @@ class PollingBot():
     __telebot: TeleBot = TeleBot(BOT_TOKEN)
 
     def __init__(self, noneStopPolling: bool = True, logLevel=logging.ERROR, interval: int = 0, timeout: int = 20) -> None:
-        logger = telebot.logger
-        telebot.logger.setLevel(logging.ERROR)
+        logger = logging.getLogger('Application')
+        telebot.logger.setLevel(logLevel)
 
         self.initializeControllers()
+
+        logger.info("PollingBot initialized")
+
         self.__telebot.polling(none_stop=noneStopPolling,
                                interval=interval, timeout=timeout)
 

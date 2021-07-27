@@ -18,12 +18,14 @@ class TaskModel(Base):
     clientOrgId: int = Column('clientorgid', Integer,
                               ForeignKey("astclientorgs.id"))
     userId: int = Column('userid', Integer)
-    orderDate: datetime = Column('moddate', TIMESTAMP)
+    orderDate: datetime = Column('orderdate', TIMESTAMP)
     descr: str = Column('descr', VARCHAR)
     serviceStartData: datetime = Column(
         'servicestartdata', TIMESTAMP(timezone=False))
     serviceEndData: datetime = Column(
         'serviceenddata', TIMESTAMP(timezone=False))
+    modDate: datetime = Column('moddate', TIMESTAMP(
+        timezone=True), onupdate=datetime.utcnow())
     serviceDescr: str = Column('servicedescr', VARCHAR)
     operatorId: int = Column('operatorid', Integer, ForeignKey('astusers.id'))
     operatorOrgId: int = Column('operatororgid', Integer)

@@ -1,5 +1,5 @@
 from typing import Any, overload
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, event
 from sqlalchemy.engine.base import Connection, Engine
 from sqlalchemy.orm.session import Session, sessionmaker
 from config import ASSISTANT_DB, TELEGRAM_DB
@@ -24,10 +24,10 @@ class DbContextBase:
         if isinstance(context, str):
             config = self.__getDatabaseConfig(context)
             self._engine = create_engine(
-                f'postgresql+psycopg2://{config["LOGIN"]}:{config["PASSWORD"]}@{config["HOST"]}/{config["DB"]}')
+                f'postgresql+psycopg2://{config["LOGIN"]}:{config["PASSWORD"]}@{config["HOST"]}/{config["DB"]}', pool_pre_ping=True, pool_recycle=30)
         else:
             self._engine = create_engine(
-                f'postgresql+psycopg2://{login}:{password}@{host}/{db}')
+                f'postgresql+psycopg2://{login}:{password}@{host}/{db}', pool_pre_ping=True, pool_recycle=30)
 
         self.__createConnection()
         self.__createSession()
@@ -51,18 +51,13 @@ class DbContextBase:
         self._session.close_all()
         self._session = None
 
-    def rawQuery(self, queryString) -> Any:
-        return self._connection.execute(text(queryString)).fetchall()
-
     def __createConnection(self) -> None:
-        if self._connection is None:
-            self._connection = self._engine.connect()
+        self._connection = self._engine.connect()
 
     def __createSession(self) -> None:
-        if self._session is None:
-            Session = sessionmaker()
-            Session.configure(bind=self._engine)
-            self._session = Session()
+        session = sessionmaker()
+        session.configure(bind=self._engine)
+        self._session = session()
 
     @staticmethod
     def __getDatabaseConfig(context: str) -> dict:

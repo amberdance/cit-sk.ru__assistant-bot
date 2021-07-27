@@ -20,7 +20,7 @@ class DatabaseCommandsController(BaseController):
             # сперва проверка на наличие пользователя в базе данных
             if(ChatUserTable.isUserRegistered(message.from_user.id)):
                 username = ChatUserTable.getUserFields(
-                    ChatUserModel.username, filter=[ChatUserModel.chatUserId == message.from_user.id])[0]['username']
+                    ChatUserModel.username, filter=[ChatUserModel.chatUserId == message.from_user.id])['username']
 
                 return BaseController.sendMessage(
                     bot, message, f"{username}, ранее Вы уже были зарегистрированы. Чтобы узнать Ваш Id введите /userid")
@@ -106,23 +106,23 @@ class DatabaseCommandsController(BaseController):
         @bot.callback_query_handler(func=lambda message: message.data.split("|")[0].find("reg:") == 0)
         def registrationInlineHandler(msg: CallbackQuery):
             payload = msg.data.split("|")
+            chatId = msg.message.chat.id
 
             # обработка кнопки отмены
             if payload[0] == 'reg:0':
                 bot.clear_step_handler(msg.message)
-                bot.send_message(msg.message.chat.id,
-                                 "Ладно, в другой раз")
+                bot.send_message(chatId, "Ладно, в другой раз")
 
             # обработка кнопки да (регистрация юзера)
             elif payload[0] == "reg:1":
-                bot.send_chat_action(msg.message.chat.id, 'typing')
+                bot.send_chat_action(chatId, 'typing')
 
                 try:
                     user = AstUserTable.getAstUserModel(
                         AstUserModel.id == payload[1])
 
                     fields = {
-                        "chatId": msg.message.chat.id,
+                        "chatId": chatId,
                         "chatUserId": msg.from_user.id,
                         "astOrgId": payload[2],
                         "astUserId": user.id,
@@ -134,19 +134,23 @@ class DatabaseCommandsController(BaseController):
                     ChatUserTable.addUser(ChatUserModel(**fields))
 
                     bot.send_message(
-                        msg.message.chat.id, f"{user.username}, регистрация прошла успешно!")
+                        chatId, f"{user.username}, регистрация прошла успешно!")
 
                 except Exception as error:
-                    bot.send_message(
-                        msg.message.chat.id, "Что-то пошло не так")
+                    bot.send_message(chatId, "Что-то пошло не так")
                     appLog.exception(error)
 
             bot.edit_message_reply_markup(
-                msg.message.chat.id, msg.message.id, reply_markup=None)
+                chatId, msg.message.id, reply_markup=None)
+
+            bot.delete_message(chatId, msg.message.id)
 
         # Обработчик принятия, отработки заявки при получении заявок от рассылки бота
         @bot.callback_query_handler(func=lambda message: message.data.split("|")[0].find("tasks:") == 0)
         def updateTaskCommand(msg: CallbackQuery) -> None:
+
+            if not ChatUserTable.isUserRegistered(msg.from_user.id):
+                return
 
             payload = ast.literal_eval(msg.data.split("|")[1])
             chatId = msg.message.chat.id
@@ -169,7 +173,8 @@ class DatabaseCommandsController(BaseController):
                 # successWord = 'принята' if payload['status'] == 1 else 'отработана'
 
                 bot.edit_message_reply_markup(
-                    msg.message.chat.id, msg.message.id, reply_markup=None)
+                    chatId, msg.message.id, reply_markup=None)
+
                 bot.reply_to(msg.message, f"Заявка {task.id} принята в работу")
 
             except Exception as error:

@@ -1,3 +1,4 @@
+import bot
 from config import IS_DEBUG_MODE, APP_PATH
 import logging
 
@@ -16,29 +17,24 @@ if __name__ == "__main__":
                         datefmt='%Y/%m/%d %H:%M:%S',
                         level=logging.DEBUG)
 
-    logger.info("Application was started")
-
     if IS_DEBUG_MODE:
-        from bot import PollingBot
-
         try:
-            PollingBot(noneStopPolling=False, logLevel=logLevel)
+            bot.PollingBot(noneStopPolling=False)
 
         except (SystemExit, KeyboardInterrupt):
-            logger.info("Application was terminated")
+            logger.info(f"Application terminated")
 
         except Exception as error:
             logger.exception(error)
 
     else:
-        from bot import WebhookBot
 
         try:
-            WebhookBot(botLoggingLevel=logLevel,
-                       httpServerLoggingLevel=logLevel)
+            bot.WebhookBot(botLoggingLevel=logLevel,
+                           httpServerLoggingLevel=logLevel)
 
         except (SystemExit, KeyboardInterrupt):
-            logger.info("Application was terminated")
+            logger.info("Application terminated")
 
         except Exception as error:
             logger.exception(error)
