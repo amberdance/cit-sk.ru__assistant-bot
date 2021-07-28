@@ -20,7 +20,7 @@ class DatabaseCommandsController(BaseController):
             # сперва проверка на наличие пользователя в базе данных
             if(ChatUserTable.isUserRegistered(message.from_user.id)):
                 username = ChatUserTable.getUserFields(
-                    ChatUserModel.username, filter=[ChatUserModel.chatUserId == message.from_user.id])['username']
+                    ChatUserModel.username, filter=[ChatUserModel.chatUserId == message.from_user.id])[0]['username']
 
                 return BaseController.sendMessage(
                     bot, message, f"{username}, ранее Вы уже были зарегистрированы. Чтобы узнать Ваш Id введите /userid")

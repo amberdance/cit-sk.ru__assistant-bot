@@ -50,13 +50,13 @@ class ThreadController:
         """TasksDbThread"""
 
         # Worker для потока TasksDbThread
-        def tasksDbWorker(interval: int = 60):
+        def tasksDbWorker(interval: int = 300):
             appLog.info(f"{tasksDbThread} started")
 
             while True:
                 try:
-                    subscribers = (ChatUserTable.getUserFields(ChatUserModel.chatUserId, filter=[
-                                                              ChatUserModel.isBlocked == False]),)
+                    subscribers = ChatUserTable.getUserFields(
+                        ChatUserModel.chatUserId, filter=[ChatUserModel.isBlocked == False])
 
                     if(bool(subscribers) is False):
                         continue

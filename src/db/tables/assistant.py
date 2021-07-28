@@ -67,7 +67,7 @@ class TaskTable(BaseTable):
         global session
 
         operatorId = ChatUserTable.getUserFields(ChatUserModel.astUserId, filter=[
-            ChatUserModel.chatId == chatUserId])['astUserId']
+            ChatUserModel.chatId == chatUserId])[0]['astUserId']
 
         queryFields = (
             TaskModel.id,
