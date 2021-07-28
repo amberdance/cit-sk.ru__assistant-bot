@@ -2,9 +2,7 @@ import bot
 from config import IS_DEBUG_MODE, APP_PATH
 import logging
 
-
 if __name__ == "__main__":
-
     logFile = f'{APP_PATH}/app.log'
     logLevel = logging.DEBUG if IS_DEBUG_MODE else logging.ERROR
     logger = logging.getLogger("Application")
@@ -26,7 +24,6 @@ if __name__ == "__main__":
             logger.exception(error)
 
     else:
-
         try:
             bot.WebhookBot(botLoggingLevel=logLevel,
                            httpServerLoggingLevel=logLevel)
