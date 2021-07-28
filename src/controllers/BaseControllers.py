@@ -38,6 +38,7 @@ class BaseController(ABC):
     def getTaskStringTemplate(task: tuple) -> str:
         return (f"<b>Номер заявки:</b> {task.id}" +
                 f"\n<b>Организация:</b> {task.orgTitle}" +
+                f"\n<b>Статус:</b> {TaskTable.getStatusLabel(task.status)}" +
                 f"\n<b>Дата создания:</b> {task.orderDate}" +
                 f"\n<b>Устройство:</b> {task.hid} {task.clientTitle}" +
                 f"\n<b>Неисправность:</b> {task.descr}")
@@ -82,18 +83,11 @@ class ThreadController:
                         for task in tasks:
                             bot.send_chat_action(chatId, 'typing')
 
-                            buttons = (
-                                InlineKeyboardButton(
-                                    'Принять', callback_data='tasks:|{"id":%s,"status":1, "orgId":%s, "msgId":%s}' % (task.id, task.operatorOrgId, headingMessageId)),
-                                # InlineKeyboardButton(
-                                #     "Отработать", callback_data='tasks:|{"id":%s,"status":2, "orgId":%s, "msgId":%s}' % (task.id, task.operatorOrgId, headingMessageId))
-                            )
-
-                            markup = BaseController.generateInlineButtons(
-                                buttons)
+                            buttons = (InlineKeyboardButton('Принять', callback_data='tasks:|{"id":%s,"status":1, "orgId":%s, "msgId":%s}' % (
+                                task.id, task.operatorOrgId, headingMessageId)),)
 
                             bot.send_message(chatId, BaseController.getTaskStringTemplate(
-                                task), parse_mode="html", reply_markup=markup)
+                                task), parse_mode="html", reply_markup=BaseController.generateInlineButtons(buttons))
 
                             # Интервал перед отправкой сообщений
                             time.sleep(1)

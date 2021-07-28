@@ -21,9 +21,6 @@ if __name__ == "__main__":
         try:
             bot.PollingBot(noneStopPolling=False)
 
-        except (SystemExit, KeyboardInterrupt):
-            logger.info(f"Application terminated")
-
         except Exception as error:
             logger.exception(error)
 
@@ -32,9 +29,6 @@ if __name__ == "__main__":
         try:
             bot.WebhookBot(botLoggingLevel=logLevel,
                            httpServerLoggingLevel=logLevel)
-
-        except (SystemExit, KeyboardInterrupt):
-            logger.info("Application terminated")
 
         except Exception as error:
             logger.exception(error)

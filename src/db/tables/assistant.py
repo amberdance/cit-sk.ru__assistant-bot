@@ -1,8 +1,7 @@
 
-import re
 import logging
 from typing import Iterable, Union, List
-from sqlalchemy.sql.expression import func
+from sqlalchemy.sql.expression import func, desc
 from sqlalchemy.exc import OperationalError
 from ..tables.BaseTable import BaseTable
 from ..tables.chat import *
@@ -57,7 +56,7 @@ class TaskTable(BaseTable):
         if join is not None:
             query = query.join(*join)
 
-        result = query.filter(*filter).all()
+        result = query.filter(*filter).order_by(TaskModel.id.desc()).all()
 
         return result[0] if len(result) == 1 else result
 
@@ -93,7 +92,9 @@ class TaskTable(BaseTable):
                 .join(ClientDeviceModel, ClientDeviceModel.deviceId == TaskModel.deviceId) \
                 .join(DeviceModel, DeviceModel.id == ClientDeviceModel.deviceId) \
                 .join(AstUserModel, AstUserModel.id == TaskModel.operatorId) \
-                .filter(*filter).all()
+                .filter(*filter) \
+                .order_by(TaskModel.id.asc()) \
+                .all()
 
         except OperationalError:
             logging.getLogger('Application').exception(
@@ -116,28 +117,13 @@ class TaskTable(BaseTable):
         return statusList[id]
 
     @ staticmethod
-    def getStatusId(key: str):
-        idList = {
-            'Новая': 0,
-            'Принята в работу': 1,
-            'Отработана': 2,
-            'Отменена': 3,
-            'Отклонена': 4
-        }
-
-        matchedKey = [k for k in idList.keys() if re.findall(
-            f"{key}+.*", k, re.IGNORECASE)]
-
-        return idList[matchedKey[0]] if bool(matchedKey) else idList[0]
-
-    @ staticmethod
     def addTask(user: TaskModel) -> TaskModel:
         BaseTable.insertRow(user, session=session)
 
         return user
 
     @ staticmethod
-    def upadteTask() -> None:
+    def updateTask() -> None:
         BaseTable.updateRow(session)
 
     @ staticmethod

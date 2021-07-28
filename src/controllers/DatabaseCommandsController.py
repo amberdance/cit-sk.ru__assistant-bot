@@ -1,10 +1,9 @@
-
-import ast
 import re
+import ast
 from sqlalchemy.exc import IntegrityError
-from controllers.BaseControllers import *
-from db.tables.chat import *
 from db.tables.assistant import *
+from db.tables.chat import *
+from controllers.BaseControllers import *
 
 
 class DatabaseCommandsController(BaseController):
@@ -15,6 +14,7 @@ class DatabaseCommandsController(BaseController):
         ThreadController.startTaskDbThreading(bot)
 
         # Todo: добавить отмену для регистрации
+        # Register command
         @bot.message_handler(commands=["reg"])
         def registerCommandStepOne(message: Message):
 
@@ -73,36 +73,6 @@ class DatabaseCommandsController(BaseController):
             bot.send_message(
                 message.chat.id, f"<b>{username}, нашел список организаций за которыми вы закреплены:</b>\n{orgLabels}\n<b>Все верно</b> ?", reply_markup=markup, parse_mode="html")
 
-        @bot.message_handler(func=lambda message: re.findall(r"tasks", message.text) and message.chat.type == 'private')
-        def getTasksCommand(message: Message) -> None:
-            chatId = message.chat.id
-            messageParams = message.text.split("-")
-            statusId = 0
-
-            if(len(messageParams) > 1):
-                statusId = TaskTable.getStatusId(messageParams[1].strip())
-
-            if(not ChatUserTable.isUserRegistered(chatId)):
-                return bot.send_message(chatId, "Сперва выполните регистрацию /reg")
-
-            try:
-                tasks = TaskTable.getTaskByChatUserId(chatId, statusId)
-
-                if(bool(tasks) is False):
-                    return bot.send_message(chatId, "Заявки не найдены")
-
-                for i, task in enumerate(tasks):
-                    bot.send_chat_action(chatId, 'typing')
-                    bot.send_message(chatId, BaseController.getTaskStringTemplate(
-                        task), parse_mode="html")
-
-                    if(i > 10):
-                        return bot.send_message(chatId, "Найдено слишком много заявок, используйте другие критерии поиска или как-нибудь в другой раз")
-
-            except Exception as error:
-                appLog.exception(error)
-                bot.send_message(chatId, 'Что-то пошло не так')
-
         # Обработчик команды /reg
         @bot.callback_query_handler(func=lambda message: message.data.split("|")[0].find("reg:") == 0)
         def registrationInlineHandler(msg: CallbackQuery):
@@ -150,13 +120,74 @@ class DatabaseCommandsController(BaseController):
 
             bot.delete_message(chatId, msg.message.id)
 
-        # Обработчик принятия, отработки заявки при получении заявок от рассылки бота
+        # Tasks command handler
+        @bot.message_handler(func=lambda message: re.findall(r"tasks", message.text) and message.chat.type == 'private')
+        def getTasksCommand(message: Message) -> None:
+            chatId = message.chat.id
+
+            if(not ChatUserTable.isUserRegistered(chatId)):
+                return bot.send_message(chatId, "Сперва выполните регистрацию /reg")
+
+            messageParams = message.text.split("-")
+            statusId = 0
+
+            if(len(messageParams) > 1 and messageParams[1]):
+                statusId = messageParams[1].strip()
+
+            try:
+                tasks = TaskTable.getTaskByChatUserId(chatId, statusId)
+
+                if(bool(tasks) is False):
+                    return bot.send_message(chatId, "Заявки не найдены")
+
+                for i, task in enumerate(tasks):
+                    bot.send_chat_action(chatId, 'typing')
+
+                    btn = None
+
+                    if(task.status == 1):
+                        btn = InlineKeyboardButton(
+                            "Отработать", callback_data='tasks:|{"id":%s,"status":2, "orgId":%s}' % (task.id, task.operatorOrgId))
+
+                    bot.send_message(chatId, BaseController.getTaskStringTemplate(
+                        task), parse_mode="html", reply_markup=None if btn is None else BaseController.generateInlineButtons((btn,)))
+
+                    if(i > 10):
+                        return bot.send_message(chatId, "Найдено слишком много заявок, используйте другие критерии поиска или как-нибудь в другой раз")
+
+            except Exception as error:
+                appLog.exception(error)
+                bot.send_message(chatId, 'Что-то пошло не так')
+
+        # Todo: сделать так, чтобы соблюдалась очередность закрытия заявок
+        def updateServiceDescriptionStep(message: Message, task: TaskModel) -> None:
+            try:
+                if message.text is None:
+                    bot.send_message(
+                        message.chat.id, "Поле комментарий не заполнено")
+
+                    return bot.register_next_step_handler(message, updateServiceDescriptionStep, task)
+
+                elif len(message.text) < 10:
+                    bot.send_message(
+                        message.chat.id, "Комментарий слишком краткий")
+
+                    return bot.register_next_step_handler(message, updateServiceDescriptionStep, task)
+
+                task.serviceDescr = message.text
+                task.serviceEndData = datetime.now().isoformat(" ", "seconds")
+
+                TaskTable.updateTask()
+
+                bot.send_message(
+                    message.chat.id, f"Заявка <b>{task.id}</b> отработана", parse_mode="html")
+            except Exception as error:
+                appLog.error(error)
+                bot.send_message(message.chat.id, "Что-то пошло не так")
+
+        # Update task handler
         @bot.callback_query_handler(func=lambda message: message.data.split("|")[0].find("tasks:") == 0)
         def updateTaskCommand(msg: CallbackQuery) -> None:
-
-            if not ChatUserTable.isUserRegistered(msg.from_user.id):
-                return
-
             payload = ast.literal_eval(msg.data.split("|")[1])
             chatId = msg.message.chat.id
 
@@ -164,23 +195,28 @@ class DatabaseCommandsController(BaseController):
                 task = TaskTable.getTaskModel(TaskModel.id == payload['id'])
                 task.status = payload['status']
 
-                if task.status == 1:
-                    task.serviceStartData = datetime.now().isoformat(" ", "seconds")
-                else:
-                    task.serviceEndData = datetime.now().isoformat(" ", "seconds")
+                if(task.status == 2):
+                    bot.send_message(chatId, "Напишите комментарий к заявке")
+                    bot.edit_message_reply_markup(
+                        chatId, msg.message.id, reply_markup=None)
 
-                TaskTable.upadteTask()
+                    return bot.register_next_step_handler(
+                        msg.message, updateServiceDescriptionStep, task)
+
+                task.serviceStartData = datetime.now().isoformat(" ", "seconds")
+
+                TaskTable.updateTask()
 
                 # Если новых заявок больше не осталось, то удаляется вступительное сообщение о наличии новых заявок
-                if len(TaskTable.getTaskFields(TaskModel.id, filter=[TaskModel.status == 0, TaskModel.operatorOrgId == payload['orgId']])) == 0:
+                if "msgId" in payload and len(TaskTable.getTaskFields(TaskModel.id, filter=[TaskModel.status == 0, TaskModel.operatorOrgId == payload['orgId']])) == 0:
                     bot.delete_message(chatId, payload['msgId'])
-
-                # successWord = 'принята' if payload['status'] == 1 else 'отработана'
 
                 bot.edit_message_reply_markup(
                     chatId, msg.message.id, reply_markup=None)
 
-                bot.reply_to(msg.message, f"Заявка {task.id} принята в работу")
+                bot.reply_to(
+                    msg.message, f"Заявка <b>{task.id}</b> принята в работу", parse_mode="html")
 
             except Exception as error:
                 appLog.exception(error)
+                bot.send_message(chatId, "Что-то пошло не так")
