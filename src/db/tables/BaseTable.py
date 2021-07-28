@@ -1,4 +1,6 @@
 from typing import Union, List, overload
+
+from sqlalchemy.exc import DatabaseError
 from ..context import DbContextBase, Session
 
 
@@ -45,11 +47,17 @@ class BaseTable:
 
     @staticmethod
     def insertRow(model: object, session: Session = None, context: str = None) -> None:
-        if session is None:
-            session = DbContextBase().getContext(context=context).getSession()
+        try:
+            if session is None:
+                session = DbContextBase().getContext(context=context).getSession()
 
-        session.add(model)
-        session.commit()
+            session.add(model)
+            session.commit()
+
+        except DatabaseError as error:
+            session.rollback()
+
+            raise error
 
     @staticmethod
     def updateRow(session: Session = None, context: str = None):

@@ -1,6 +1,8 @@
-from typing import Any, overload
-from sqlalchemy import create_engine, event
+from typing import overload
+import logging
+from sqlalchemy.engine import create_engine
 from sqlalchemy.engine.base import Connection, Engine
+from sqlalchemy.exc import DatabaseError
 from sqlalchemy.orm.session import Session, sessionmaker
 from config import ASSISTANT_DB, TELEGRAM_DB
 

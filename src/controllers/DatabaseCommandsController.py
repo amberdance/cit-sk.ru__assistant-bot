@@ -1,6 +1,7 @@
 
 import ast
 import re
+from sqlalchemy.exc import IntegrityError
 from controllers.BaseControllers import *
 from db.tables.chat import *
 from db.tables.assistant import *
@@ -66,13 +67,13 @@ class DatabaseCommandsController(BaseController):
             username = orgList[0].username
             args = f"reg:1|{orgList[0].userId}|{orgList[0].orgId}"
             buttons = (InlineKeyboardButton(
-                text="Да", callback_data=args), InlineKeyboardButton("Да", callback_data="reg:0"))
+                text="Да", callback_data=args), InlineKeyboardButton("Нет", callback_data="reg:0"))
             markup = BaseController.generateInlineButtons(buttons)
 
             bot.send_message(
                 message.chat.id, f"<b>{username}, нашел список организаций за которыми вы закреплены:</b>\n{orgLabels}\n<b>Все верно</b> ?", reply_markup=markup, parse_mode="html")
 
-        @ bot.message_handler(func=lambda message: re.findall(r"tasks", message.text) and message.chat.type == 'private')
+        @bot.message_handler(func=lambda message: re.findall(r"tasks", message.text) and message.chat.type == 'private')
         def getTasksCommand(message: Message) -> None:
             chatId = message.chat.id
             messageParams = message.text.split("-")
@@ -131,14 +132,18 @@ class DatabaseCommandsController(BaseController):
                         "role": 1
                     }
 
-                    ChatUserTable.addUser(ChatUserModel(**fields))
-
-                    bot.send_message(
-                        chatId, f"{user.username}, регистрация прошла успешно!")
-
                 except Exception as error:
                     bot.send_message(chatId, "Что-то пошло не так")
                     appLog.exception(error)
+
+                try:
+                    ChatUserTable.addUser(ChatUserModel(**fields))
+                    bot.send_message(
+                        chatId, f"{user.username}, регистрация прошла успешно!")
+
+                except IntegrityError as error:
+                    bot.send_message(
+                        chatId, 'Пользователь с таким email уже зарегистрирован')
 
             bot.edit_message_reply_markup(
                 chatId, msg.message.id, reply_markup=None)

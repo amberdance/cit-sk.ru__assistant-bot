@@ -9,7 +9,7 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-__debug.py
+/src/__debug.py
 *.log
 /src/__pycache__/
 build/

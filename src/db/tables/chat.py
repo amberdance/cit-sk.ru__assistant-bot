@@ -3,6 +3,8 @@ from .BaseTable import BaseTable
 from ..models.chat import ChatUserModel
 from ..context import TelegramBotDbContext
 
+
+
 session = TelegramBotDbContext().getSession()
 
 
@@ -13,7 +15,7 @@ class ChatUserTable(BaseTable):
         query = session.query(*fields)
 
         if join is not None:
-            query = query.join(*join)
+            query = session.query.join(*join)
 
         return [row._asdict() for row in query.filter(*filter).all()]
 

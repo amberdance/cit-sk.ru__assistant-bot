@@ -10,7 +10,7 @@ class ChatUserModel(Base):
     __tablename__ = 'users'
 
     id = Column('id', Integer, primary_key=True, autoincrement=True)
-    astUserId = Column('astUserId', Integer, nullable=False)
+    astUserId = Column('astUserId', Integer, nullable=False, unique=True)
     chatId: int = Column('chatId', Integer, nullable=False)
     chatUserId: int = Column('chatUserId', Integer, nullable=False)
     astOrgId: int = Column('astOrgId', Integer)
