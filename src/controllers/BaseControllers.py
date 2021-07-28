@@ -5,6 +5,7 @@ from threading import Thread
 from typing import Iterable, Union
 from telebot import TeleBot
 from telebot.types import CallbackQuery, Message, InlineKeyboardMarkup, InlineKeyboardButton
+from telebot.apihelper import ApiTelegramException
 from pymorphy2 import MorphAnalyzer
 from db.tables.assistant import TaskTable
 from db.tables.chat import ChatUserTable, ChatUserModel
@@ -51,20 +52,21 @@ class ThreadController:
         """TasksDbThread"""
 
         # Worker для потока TasksDbThread
-        def tasksDbWorker(interval: int = 300):
+        def tasksDbWorker(interval: int = 60):
             appLog.info(f"{tasksDbThread} started")
 
             while True:
                 try:
-                    subscribers = ChatUserTable.getUserFields(
-                        ChatUserModel.chatUserId, filter=[ChatUserModel.isBlocked == False])
+                    users = ChatUserTable.getUserFields(
+                        ChatUserModel.astUserId, ChatUserModel.chatId, filter=[ChatUserModel.isBlocked == False])
 
-                    if(bool(subscribers) is False):
+                    if(bool(users) is False):
                         continue
 
-                    for user in subscribers:
-                        chatId = user['chatUserId']
-                        tasks = TaskTable.getTaskByChatUserId(chatId)
+                    for user in users:
+                        chatId = user['chatId']
+                        operatorId = user['astUserId']
+                        tasks = TaskTable.getTaskByOperatorId(operatorId)
 
                         if(bool(tasks) is False):
                             continue
@@ -89,14 +91,23 @@ class ThreadController:
                             bot.send_message(chatId, BaseController.getTaskStringTemplate(
                                 task), parse_mode="html", reply_markup=BaseController.generateInlineButtons(buttons))
 
-                            # Интервал перед отправкой сообщений
-                            time.sleep(1)
+                        # Интервал перед итерациями users (имитация задержки в отправке сообщений ботом)
+                        time.sleep(len(tasks) + 2)
 
-                        # Интервал перед итерированиями пользователей
-                        time.sleep(5)
-
-                    # Интервал перед запросами базы данных
+                    # Интервал между запросами к базе данных
                     time.sleep(interval)
+
+                except ApiTelegramException as error:
+
+                    """ В случае, если не найден чат пользователя, то блокируем его.
+                        Это нужно, чтобы цикл while корректно функционировал
+                    """
+                    if(error.error_code == 400):
+                        user = ChatUserTable.getUser(
+                            ChatUserModel.astUserId == operatorId)
+                        user.isBlocked = True
+
+                        ChatUserTable.updateUser()
 
                 except Exception as error:
                     appLog.exception(error)

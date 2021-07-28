@@ -8,7 +8,7 @@ from ..context import TelegramBotDbContext
 session = TelegramBotDbContext().getSession()
 
 
-class ChatUserTable(BaseTable):
+class ChatUserTable():
 
     @staticmethod
     def getUserFields(*fields: Tuple, filter: Iterable = [], join: Tuple = None) -> List:
@@ -20,7 +20,7 @@ class ChatUserTable(BaseTable):
         return [row._asdict() for row in query.filter(*filter).all()]
 
     @staticmethod
-    def getUserModel(*filter: tuple, ) -> Union[ChatUserModel, List[ChatUserModel]]:
+    def getUser(*filter: tuple, ) -> Union[ChatUserModel, List[ChatUserModel]]:
         result = [row for row in session.query(
             ChatUserModel).filter(*filter).all()]
 

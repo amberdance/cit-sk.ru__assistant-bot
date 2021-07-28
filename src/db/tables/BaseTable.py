@@ -61,15 +61,27 @@ class BaseTable:
 
     @staticmethod
     def updateRow(session: Session = None, context: str = None):
-        if session is None:
-            session = DbContextBase().getContext(context=context).getSession()
+        try:
+            if session is None:
+                session = DbContextBase().getContext(context=context).getSession()
 
-        session.commit()
+            session.commit()
+
+        except DatabaseError as error:
+            session.rollback()
+
+            raise error
 
     @staticmethod
     def deleteRow(model: object, session: Session = None, context: str = None):
-        if session is None:
-            session = DbContextBase().getContext(context=context).getSession()
+        try:
+            if session is None:
+                session = DbContextBase().getContext(context=context).getSession()
 
-        session.delete(model)
-        session.commit()
+            session.delete(model)
+            session.commit()
+
+        except DatabaseError as error:
+            session.rollback()
+
+            raise error

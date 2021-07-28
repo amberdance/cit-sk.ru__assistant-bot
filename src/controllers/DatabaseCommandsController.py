@@ -135,7 +135,10 @@ class DatabaseCommandsController(BaseController):
                 statusId = messageParams[1].strip()
 
             try:
-                tasks = TaskTable.getTaskByChatUserId(chatId, statusId)
+                operatorId = ChatUserTable.getUserFields(ChatUserModel.astUserId, filter=[
+                                                         ChatUserModel.chatUserId == chatId])[0]['astUserId']
+
+                tasks = TaskTable.getTaskByOperatorId(operatorId, statusId)
 
                 if(bool(tasks) is False):
                     return bot.send_message(chatId, "Заявки не найдены")

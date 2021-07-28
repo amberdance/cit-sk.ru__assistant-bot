@@ -1,7 +1,7 @@
 
 import logging
 from typing import Iterable, Union, List
-from sqlalchemy.sql.expression import func, desc
+from sqlalchemy.sql.expression import func, asc
 from sqlalchemy.exc import OperationalError
 from ..tables.BaseTable import BaseTable
 from ..tables.chat import *
@@ -11,7 +11,7 @@ from ..context import AssistantDbContext
 session = AssistantDbContext().getSession()
 
 
-class AstUserTable(BaseTable):
+class AstUserTable():
     @staticmethod
     def getOrganization(*filter: Iterable) -> List:
         if(bool(filter) is False):
@@ -61,12 +61,9 @@ class TaskTable(BaseTable):
         return result[0] if len(result) == 1 else result
 
     @staticmethod
-    def getTaskByChatUserId(chatUserId: int, statusId: int = 0) -> List:
+    def getTaskByOperatorId(operatorId: int, statusId: int = 0) -> List:
 
         global session
-
-        operatorId = ChatUserTable.getUserFields(ChatUserModel.astUserId, filter=[
-            ChatUserModel.chatId == chatUserId])[0]['astUserId']
 
         queryFields = (
             TaskModel.id,
