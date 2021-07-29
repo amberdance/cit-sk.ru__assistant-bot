@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 import logging
 import time
-from threading import Thread
+from threading import Thread, Timer
 from typing import Iterable, Union
 from telebot import TeleBot
 from telebot.types import CallbackQuery, Message, InlineKeyboardMarkup, InlineKeyboardButton

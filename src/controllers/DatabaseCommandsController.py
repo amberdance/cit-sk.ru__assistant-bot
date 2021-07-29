@@ -212,10 +212,17 @@ class DatabaseCommandsController(BaseController):
 
                 # Если новых заявок больше не осталось, то удаляется вступительное сообщение о наличии новых заявок
                 if "msgId" in payload and len(TaskTable.getTaskFields(TaskModel.id, filter=[TaskModel.status == 0, TaskModel.operatorOrgId == payload['orgId']])) == 0:
-                    bot.delete_message(chatId, payload['msgId'])
 
-                bot.edit_message_reply_markup(
-                    chatId, msg.message.id, reply_markup=None)
+                    try:
+                        bot.delete_message(chatId, payload['msgId'])
+
+                        bot.edit_message_reply_markup(
+                            chatId, msg.message.id, reply_markup=None)
+
+                    # Если сообщение не найдено, то эту ошибку не бросаем дальше
+                    except ApiTelegramException as error:
+                        if(error.error_code == 400):
+                            return
 
                 bot.reply_to(
                     msg.message, f"Заявка <b>{task.id}</b> принята в работу", parse_mode="html")

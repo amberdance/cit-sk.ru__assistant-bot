@@ -19,11 +19,11 @@ class WebhookBot():
         self.__telebot.remove_webhook()
         self.__telebot.set_webhook(WEBHOOK_URL_BASE + WEBHOOK_URL_PATH)
 
-        self.__app.router.add_post('/{token}/', self.handle)
-        self.initializeControllers()
-
         logging.getLogger('Application')
         logging.info("WebhookBot initialized")
+
+        self.__app.router.add_post('/{token}/', self.handle)
+        self.initializeControllers()
 
         web.run_app(
             self.__app,
