@@ -52,13 +52,12 @@ class ThreadController:
         """TasksDbThread"""
 
         # Worker для потока TasksDbThread
-        def tasksDbWorker(interval: int = 60):
-            appLog.info(f"{tasksDbThread} started")
+        def tasksDbWorker(interval: int = 180):
 
             while True:
                 try:
                     users = ChatUserTable.getUserFields(
-                        ChatUserModel.astUserId, ChatUserModel.chatId, filter=[ChatUserModel.isBlocked == False])
+                        ChatUserModel.astUserId, ChatUserModel.username, ChatUserModel.chatId, filter=[ChatUserModel.isBlocked == False])
 
                     if(bool(users) is False):
                         continue
@@ -81,6 +80,9 @@ class ThreadController:
 
                         headingMessageId = bot.send_message(
                             chatId, f"У вас есть {len(tasks)} {decl1} {decl2}").message_id
+
+                        appLog.info(
+                            f"{tasksDbThread} sending tasks to user: {user['username']}, operator id: {operatorId}")
 
                         for task in tasks:
                             bot.send_chat_action(chatId, 'typing')
