@@ -1,8 +1,8 @@
 import os
 
-IS_DEBUG_MODE = True
-APP_PATH = os.path.dirname(os.path.abspath(__file__))
-BOT_TOKEN = "1866567413:AAFBzR_uOkxlePU9ZbQl93gL1McWmFDoDAQ" if IS_DEBUG_MODE is True else "1926241792:AAHu4b3VeALdCbmTXy5V8D3N-n_va4d2fgU"
+DEBUG_MODE = True
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BOT_TOKEN = "1866567413:AAFBzR_uOkxlePU9ZbQl93gL1McWmFDoDAQ" if DEBUG_MODE is True else "1926241792:AAHu4b3VeALdCbmTXy5V8D3N-n_va4d2fgU"
 WEBHOOK_HOST = 'bot-ast.stavregion.ru'
 WEBHOOK_LISTEN = '127.0.0.1'
 WEBHOOK_PORT = 443

@@ -1,2 +1,2 @@
-from .PollingBot import PollingBot
-from .WebhookBot import WebhookBot
+from .polling import PollingBot
+from .webhook import WebhookBot

@@ -1,17 +1,18 @@
 
-import logging
 from typing import Iterable, Union, List
-from sqlalchemy.sql.expression import func, asc
+from sqlalchemy.sql.expression import func
 from sqlalchemy.exc import OperationalError
-from ..tables.BaseTable import BaseTable
-from ..tables.chat import *
-from ..models.assistant import *
 from ..context import AssistantDbContext
+from ..storage.base import BaseStorage
+from ..storage.chat import *
+from ..models.assistant import *
+
 
 session = AssistantDbContext().getSession()
 
 
-class AstUserTable():
+class AstUserStorage():
+
     @staticmethod
     def getOrganization(*filter: Iterable) -> List:
         if(bool(filter) is False):
@@ -38,10 +39,22 @@ class AstUserTable():
         return result[0] if len(result) == 1 else result
 
 
-class TaskTable(BaseTable):
+class TaskStorage():
 
-    @staticmethod
-    def getTaskFields(*fields: List, filter: Iterable = None, join: Iterable = None) -> List:
+    @ staticmethod
+    def updateModel() -> None:
+        BaseStorage.updateRow(session)
+
+    @ staticmethod
+    def updateByFields(id: int, fields: dict) -> None:
+        BaseStorage.updateRowByFields(TaskModel, id, fields, session)
+
+    @ staticmethod
+    def delete(task: TaskModel) -> None:
+        BaseStorage.deleteRow(task, session)
+
+    @ staticmethod
+    def getByFields(*fields: List, filter: Iterable = None, join: Iterable = None) -> List:
         query = session.query(*fields).select_from(TaskModel)
 
         if join is not None:
@@ -49,8 +62,8 @@ class TaskTable(BaseTable):
 
         return [row._asdict() for row in query.filter(*filter).all()]
 
-    @staticmethod
-    def getTaskModel(*filter: List, join: Iterable = None) -> Union[TaskModel, List[TaskModel]]:
+    @ staticmethod
+    def getModel(*filter: List, join: Iterable = None) -> Union[TaskModel, List[TaskModel]]:
         query = session.query(TaskModel)
 
         if join is not None:
@@ -60,48 +73,41 @@ class TaskTable(BaseTable):
 
         return result[0] if len(result) == 1 else result
 
-    @staticmethod
-    def getTaskByOperatorId(operatorId: int, statusId: int = 0) -> List:
-
+    @ staticmethod
+    def getByOperatorId(operatorId: int, statusId: int = 0, isOperatorAdmin=False) -> List:
         global session
 
         queryFields = (
             TaskModel.id,
             TaskModel.descr,
             TaskModel.status,
-            func.to_char(TaskModel.orderDate,
-                         "dd.mm.YYYY HH:ss:mm").label('orderDate'),
-            DeviceModel.hid,
+            TaskModel.modDate.label('orderDate'),
             TaskModel.operatorOrgId.label('operatorOrgId'),
-            ClientDeviceModel.title.label('clientTitle'),
-            OrganizationModel.title.label("orgTitle"),
+            DeviceModel.hid,
+            ClientDeviceModel.title.label('client'),
+            OrganizationModel.title.label("org"),
         )
 
-        filter = (
-            TaskModel.status == statusId,
-            TaskModel.operatorId == operatorId
-        )
+        filter = [TaskModel.status == statusId]
+
+        if isOperatorAdmin is False:
+            filter.append(TaskModel.clientOrgId.in_(
+                TaskStorage.getOrganizationsByOperatorId(operatorId)))
 
         try:
-            return session.query(*queryFields) \
-                .select_from(TaskModel) \
-                .join(OrganizationModel, OrganizationModel.id == TaskModel.clientOrgId) \
-                .join(ClientDeviceModel, ClientDeviceModel.deviceId == TaskModel.deviceId) \
-                .join(DeviceModel, DeviceModel.id == ClientDeviceModel.deviceId) \
-                .join(AstUserModel, AstUserModel.id == TaskModel.operatorId) \
-                .filter(*filter) \
-                .order_by(TaskModel.id.asc()) \
+            return session.query(*queryFields)\
+                .select_from(TaskModel)\
+                .join(OrganizationModel, OrganizationModel.id == TaskModel.clientOrgId)\
+                .join(ClientDeviceModel, ClientDeviceModel.deviceId == TaskModel.deviceId)\
+                .join(DeviceModel, DeviceModel.id == ClientDeviceModel.deviceId)\
+                .filter(*filter)\
+                .order_by(TaskModel.id.asc())\
                 .all()
 
         except OperationalError:
-            logging.getLogger('Application').exception(
-                'Server closed the connection')
-
             session = AssistantDbContext().getSession()
 
-            logging.getLogger('Application').info('Reconnected to server')
-
-    @staticmethod
+    @ staticmethod
     def getStatusLabel(id: int):
         statusList = {
             0: 'Новая',
@@ -114,15 +120,9 @@ class TaskTable(BaseTable):
         return statusList[id]
 
     @ staticmethod
-    def addTask(user: TaskModel) -> TaskModel:
-        BaseTable.insertRow(user, session=session)
-
-        return user
-
-    @ staticmethod
-    def updateTask() -> None:
-        BaseTable.updateRow(session)
-
-    @ staticmethod
-    def deleteTask(user: TaskModel) -> None:
-        BaseTable.deleteRow(user, session)
+    def getOrganizationsByOperatorId(id: int) -> List[int]:
+        return [row.orgId for row in session.query(AstOrgUserModel.orgId)
+                .select_from(AstOrgUserModel)
+                .join(AstUserModel, AstUserModel.id == AstOrgUserModel.userId)
+                .filter(AstUserModel.id == id, AstUserModel.status == 0, AstOrgUserModel.status == 1)
+                .all()]

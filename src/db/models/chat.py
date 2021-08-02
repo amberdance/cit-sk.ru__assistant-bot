@@ -1,4 +1,5 @@
 from datetime import datetime
+from sqlalchemy.sql import func
 from sqlalchemy import DateTime, Integer, Column, Boolean, VARCHAR
 from sqlalchemy.ext.declarative import declarative_base
 from ..context import TelegramBotDbContext
@@ -6,23 +7,35 @@ from ..context import TelegramBotDbContext
 Base = declarative_base()
 
 
+def createTable() -> None:
+    Base.metadata.create_all(TelegramBotDbContext().getEngine())
+
+
 class ChatUserModel(Base):
     __tablename__ = 'users'
 
-    id = Column('id', Integer, primary_key=True, autoincrement=True)
-    astUserId = Column('astUserId', Integer, nullable=False, unique=True)
-    chatId: int = Column('chatId', Integer, nullable=False)
-    chatUserId: int = Column('chatUserId', Integer, nullable=False)
-    astOrgId: int = Column('astOrgId', Integer)
-    username: str = Column('username', VARCHAR)
-    email: str = Column('email', VARCHAR)
-    created: datetime = Column('created', DateTime(
-        timezone=True), default=datetime.utcnow())
-    modified: datetime = Column(
-        'modified', DateTime, onupdate=datetime.utcnow())
-    modifiedBy: int = Column('modifiedBy', Integer, default=None)
-    isBlocked: bool = Column('isBlocked', Boolean, default=False)
-    role: int = Column('role', Integer, default=1)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    created: datetime = Column(DateTime(
+        timezone=False), server_default=func.now())
+    astUserId = Column(Integer, nullable=False, unique=True)
+    chatId: int = Column(Integer, nullable=False)
+    chatUserId: int = Column(Integer, nullable=False)
+    astOrgId: int = Column(Integer)
+    username: str = Column(VARCHAR)
+    email: str = Column(VARCHAR, unique=True)
+    isBlocked: bool = Column(Boolean, default=False)
+    isSubscriber: bool = Column(Boolean, default=True)
+    role: int = Column(Integer, default=0)
 
-    def createTable() -> None:
-        Base.metadata.create_all(TelegramBotDbContext().getEngine())
+
+class MessageModel(Base):
+    __tablename__ = 'messages'
+
+    id = Column('id', Integer, primary_key=True, autoincrement=True)
+    created: datetime = Column(DateTime(
+        timezone=False), server_default=func.now())
+    messageId: int = Column(Integer, nullable=False)
+    chatId: int = Column(Integer, nullable=False)
+    taskId: int = Column(Integer)
+    isBot: int = Column(Boolean, default=True)
+    text: str = Column(VARCHAR)

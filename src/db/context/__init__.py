@@ -1,3 +1,3 @@
-from .AssistantDbContext import AssistantDbContext
-from .TelegramBotDbContext import TelegramBotDbContext
-from .DbContextBase import DbContextBase, Session
+from .assistant import AssistantDbContext
+from .telegram import TelegramBotDbContext
+from .base import DbContextBase, Session

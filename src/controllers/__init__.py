@@ -1,3 +1,3 @@
-from .CommonCommandsController import CommonCommandsController
-from .DatabaseCommandsController import DatabaseCommandsController
-from .ServiceCommandsController import ServiceCommandsController
+from .shared import CommonCommandsController
+from .database import DatabaseCommandsController
+from .service import ServiceCommandsController

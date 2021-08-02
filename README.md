@@ -1,1 +1,1 @@
-# assistant-bot 1.0.2
+# telegram bot, citsk 

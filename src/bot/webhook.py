@@ -7,23 +7,26 @@ from controllers import CommonCommandsController, DatabaseCommandsController, Se
 
 
 class WebhookBot():
-
     __app: Application = web.Application()
-    __telebot: telebot.TeleBot = telebot.TeleBot(BOT_TOKEN)
+    __bot: telebot.TeleBot = telebot.TeleBot(BOT_TOKEN)
 
     def __init__(self, botLoggingLevel: logging = logging.ERROR, httpServerLoggingLevel: logging = logging.ERROR) -> None:
-
         logging.basicConfig(level=httpServerLoggingLevel)
         telebot.logger.setLevel(botLoggingLevel)
 
-        self.__telebot.remove_webhook()
-        self.__telebot.set_webhook(WEBHOOK_URL_BASE + WEBHOOK_URL_PATH)
+        self.__bot.remove_webhook()
+        self.__bot.set_webhook(WEBHOOK_URL_BASE + WEBHOOK_URL_PATH)
+        self.__app.router.add_post('/{token}/', self.__handle)
+
+        controllers = (CommonCommandsController,
+                       ServiceCommandsController,
+                       DatabaseCommandsController,)
+
+        for controller in controllers:
+            controller(self.__bot).initialize()
 
         logging.getLogger('Application')
         logging.info("WebhookBot initialized")
-
-        self.__app.router.add_post('/{token}/', self.handle)
-        self.initializeControllers()
 
         web.run_app(
             self.__app,
@@ -31,18 +34,13 @@ class WebhookBot():
             port=WEBHOOK_LISTEN_PORT,
         )
 
-    async def handle(self, request) -> None:
-        if request.match_info.get('token') == self.__telebot.token:
+    async def __handle(self, request) -> None:
+        if request.match_info.get('token') == self.__bot.token:
             requestJSON = await request.json()
-            self.__telebot.process_new_updates(
+            self.__bot.process_new_updates(
                 [telebot.types.Update.de_json(requestJSON)])
+
             return web.Response()
+
         else:
             return web.Response(status=403)
-
-    def initializeControllers(self) -> None:
-        controllers = (CommonCommandsController,
-                       ServiceCommandsController, DatabaseCommandsController)
-
-        for obj in controllers:
-            obj.initializeMessageHandler(self.__telebot)
