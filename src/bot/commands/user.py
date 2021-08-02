@@ -66,6 +66,13 @@ class ChatUserHandler:
             bot.send_message(
                 message.chat.id, f"<b>{username}, нашел список организаций за которыми вы закреплены:</b>\n{orgLabelsStroke}\n<b>Все верно</b> ?", reply_markup=markup, parse_mode="html")
 
+        # subscribe command handler
+        @bot.message_handler(["subscribe", "unsubscribe"])
+        def subscribtionCommand(message: Message) -> None:
+            value = True if message.text == "/subscribe" else False
+
+            __setUserSubscribtion(message.chat.id, value)
+
         # /reg callback handler
         @bot.callback_query_handler(func=lambda message: message.data.split("|")[0].find("reg:") == 0)
         def registrationInlineHandler(msg: CallbackQuery):
@@ -110,16 +117,21 @@ class ChatUserHandler:
 
             bot.delete_message(chatId, msg.message.id)
 
-        # unsubscribe callback handler
-        @bot.callback_query_handler(func=lambda message: message.data.split("|")[0].find("unsubscribe:") == 0)
-        def unsubscribe(msg: CallbackQuery):
-            chatId = msg.message.chat.id
-            payload = ast.literal_eval(msg.data.split("|")[1])
+        # subscribe callback handler
+        @bot.callback_query_handler(func=lambda message: message.data.find("subscription") == 0)
+        def unsubscribe(msg: CallbackQuery) -> None:
+            __setUserSubscribtion(msg.message.chat.id, False)
+
+        def __setUserSubscribtion(chatId: int, value: bool) -> None:
+            text = "подписаны на рассылку" if value is True else "отписаны от рассылки"
 
             try:
+                if not ChatUserStorage.isAdmin(chatId):
+                    return
+
                 ChatUserStorage.updateByFields(
-                    [ChatUserModel.id == payload['id']], {'isSubscriber': False})
-                bot.send_message(chatId, "Вы успешно отписаны от рассылки")
+                    [ChatUserModel.chatId == chatId], {'isSubscriber': value})
+                bot.send_message(chatId, f"Вы успешно {text}")
 
             except ApiTelegramException as error:
                 appLog.exception(error)

@@ -158,11 +158,9 @@ class TaskHandler:
 
                         tasksLength = len(tasks)
                         decl = TaskHandler.__getDeclination(tasksLength)
-                        unsubscribeBtn = None if not isAdmin else InlineKeyboardButton(
-                            'Отписаться', callback_data='unsubscribe:|{"id":%s}' % (user['id']))
 
-                        bot.send_message(chatId, f"У вас есть {tasksLength} {decl['status']} {decl['task']}",
-                                         reply_markup=None if unsubscribeBtn is None else BaseController.generateInlineButtons((unsubscribeBtn,)))
+                        bot.send_message(
+                            chatId, f"У вас есть {tasksLength} {decl['status']} {decl['task']}")
 
                         if(len(tasks) > 10):
                             continue
@@ -177,8 +175,8 @@ class TaskHandler:
                                 buttons.append(InlineKeyboardButton('Принять', callback_data='tasks:|{"id":%s,"status":1}' % (
                                     task.id)))
 
-                            bot.send_message(chatId, BaseController.getTaskStringTemplate(
-                                task), parse_mode="html", reply_markup=None if len(buttons) == 0 else BaseController.generateInlineButtons(buttons))
+                            bot.send_message(chatId, BaseController.getTaskStringTemplate(task), parse_mode="html", reply_markup=None if len(
+                                buttons) == 0 else BaseController.generateInlineButtons(buttons))
 
                         # delay imitation
                         time.sleep(len(tasks) + 2)
@@ -187,9 +185,9 @@ class TaskHandler:
                     time.sleep(interval)
 
                 except ApiTelegramException as error:
-
                     # blocking user to prevent mailing if chat id is missing
-                    if(error.error_code == 400):
+                    if(str(error).find("message not found") != -1):
+
                         ChatUserStorage.updateByFields(
                             [ChatUserModel.astUserId == operatorId], {"isBlocked": True, "isSubscriber": False})
 
