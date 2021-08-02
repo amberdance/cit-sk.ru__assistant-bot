@@ -9,5 +9,5 @@ class DatabaseCommandsController(BaseController):
 
     def initialize(self) -> None:
         TaskHandler.scanningTasks(self._bot, 90)
-        RegistationHandler.initialize(self._bot)
+        ChatUserHandler.initialize(self._bot)
         TaskHandler.initialize(self._bot)

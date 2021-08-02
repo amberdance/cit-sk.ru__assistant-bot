@@ -1,3 +1,4 @@
+import ast
 import re
 from sqlalchemy.exc import IntegrityError
 from telebot.apihelper import ApiTelegramException
@@ -7,7 +8,7 @@ from db.storage.chat import ChatUserStorage, ChatUserModel
 from db.storage.assistant import AstUserStorage, AstUserModel, AstOrgUserModel
 
 
-class RegistationHandler:
+class ChatUserHandler:
     def initialize(bot: TeleBot):
 
         @bot.message_handler(["reg"])
@@ -108,3 +109,21 @@ class RegistationHandler:
                 chatId, msg.message.id, reply_markup=None)
 
             bot.delete_message(chatId, msg.message.id)
+
+        # unsubscribe callback handler
+        @bot.callback_query_handler(func=lambda message: message.data.split("|")[0].find("unsubscribe:") == 0)
+        def unsubscribe(msg: CallbackQuery):
+            chatId = msg.message.chat.id
+            payload = ast.literal_eval(msg.data.split("|")[1])
+
+            try:
+                ChatUserStorage.updateByFields(
+                    [ChatUserModel.id == payload['id']], {'isSubscriber': False})
+                bot.send_message(chatId, "Вы успешно отписаны от рассылки")
+
+            except ApiTelegramException as error:
+                appLog.exception(error)
+                bot.send_message(chatId, "Что-то пошло не так")
+
+            except Exception as error:
+                appLog.exception(error)

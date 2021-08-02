@@ -136,7 +136,12 @@ class TaskHandler:
             while True:
                 try:
                     users = ChatUserStorage.getUserFields(
-                        ChatUserModel.astUserId, ChatUserModel.username, ChatUserModel.chatId, ChatUserModel.role, filter=[ChatUserModel.isBlocked == False, ChatUserModel.isSubscriber == True])
+                        ChatUserModel.id,
+                        ChatUserModel.astUserId,
+                        ChatUserModel.username,
+                        ChatUserModel.chatId,
+                        ChatUserModel.role,
+                        filter=[ChatUserModel.isBlocked == False, ChatUserModel.isSubscriber == True])
 
                     if(bool(users) is False):
                         continue
@@ -153,9 +158,11 @@ class TaskHandler:
 
                         tasksLength = len(tasks)
                         decl = TaskHandler.__getDeclination(tasksLength)
+                        unsubscribeBtn = None if not isAdmin else InlineKeyboardButton(
+                            'Отписаться', callback_data='unsubscribe:|{"id":%s}' % (user['id']))
 
-                        bot.send_message(
-                            chatId, f"У вас есть {tasksLength} {decl['status']} {decl['task']}")
+                        bot.send_message(chatId, f"У вас есть {tasksLength} {decl['status']} {decl['task']}",
+                                         reply_markup=None if unsubscribeBtn is None else BaseController.generateInlineButtons((unsubscribeBtn,)))
 
                         if(len(tasks) > 10):
                             continue
@@ -164,12 +171,14 @@ class TaskHandler:
                             f"{tasksDbThread} sending tasks to user: {user['username']}, operator id: {operatorId}")
 
                         for task in tasks:
+                            buttons = []
 
-                            btn = None if isAdmin else (InlineKeyboardButton('Принять', callback_data='tasks:|{"id":%s,"status":1}' % (
-                                task.id)),)
+                            if not isAdmin:
+                                buttons.append(InlineKeyboardButton('Принять', callback_data='tasks:|{"id":%s,"status":1}' % (
+                                    task.id)))
 
                             bot.send_message(chatId, BaseController.getTaskStringTemplate(
-                                task), parse_mode="html", reply_markup=None if isAdmin else BaseController.generateInlineButtons(btn))
+                                task), parse_mode="html", reply_markup=None if len(buttons) == 0 else BaseController.generateInlineButtons(buttons))
 
                         # delay imitation
                         time.sleep(len(tasks) + 2)

@@ -1,2 +1,2 @@
-from .registration import RegistationHandler
+from .user import ChatUserHandler
 from .task import TaskHandler
