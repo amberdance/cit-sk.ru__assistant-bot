@@ -8,6 +8,6 @@ class DatabaseCommandsController(BaseController):
         super().__init__(bot)
 
     def initialize(self) -> None:
-        TaskHandler.scanningTasks(self._bot, 90)
+        # TaskHandler.scanningTasks(self._bot, 180)
         ChatUserHandler.initialize(self._bot)
         TaskHandler.initialize(self._bot)

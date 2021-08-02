@@ -8,7 +8,7 @@ class ServiceCommandsController(BaseController):
 
     def initialize(self) -> None:
         @self._bot.message_handler(['userid'])
-        def getUserIdCommand(message: Message) -> None:
+        def getModelIdCommand(message: Message) -> None:
             self._bot.reply_to(message, f'Ваш Id: {message.from_user.id}')
 
         def registerBotCommands() -> None:

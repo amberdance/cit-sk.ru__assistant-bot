@@ -41,19 +41,19 @@ class AstUserStorage():
 
 class TaskStorage():
 
-    @ staticmethod
+    @staticmethod
     def updateModel() -> None:
         BaseStorage.updateRow(session)
 
-    @ staticmethod
+    @staticmethod
     def updateByFields(id: int, fields: dict) -> None:
         BaseStorage.updateRowByFields(TaskModel, id, fields, session)
 
-    @ staticmethod
+    @staticmethod
     def delete(task: TaskModel) -> None:
         BaseStorage.deleteRow(task, session)
 
-    @ staticmethod
+    @staticmethod
     def getByFields(*fields: List, filter: Iterable = None, join: Iterable = None) -> List:
         query = session.query(*fields).select_from(TaskModel)
 
@@ -62,7 +62,7 @@ class TaskStorage():
 
         return [row._asdict() for row in query.filter(*filter).all()]
 
-    @ staticmethod
+    @staticmethod
     def getModel(*filter: List, join: Iterable = None) -> Union[TaskModel, List[TaskModel]]:
         query = session.query(TaskModel)
 
@@ -73,7 +73,7 @@ class TaskStorage():
 
         return result[0] if len(result) == 1 else result
 
-    @ staticmethod
+    @staticmethod
     def getByOperatorId(operatorId: int, statusId: int = 0, isOperatorAdmin=False) -> List:
         global session
 
@@ -107,7 +107,17 @@ class TaskStorage():
         except OperationalError:
             session = AssistantDbContext().getSession()
 
-    @ staticmethod
+    @staticmethod
+    def getOrganizationsByOperatorId(id: int) -> List[int]:
+        result = session.query(AstOrgUserModel.orgId) \
+            .select_from(AstOrgUserModel) \
+            .join(AstUserModel, AstUserModel.id == AstOrgUserModel.userId)\
+            .filter(AstUserModel.id == id, AstUserModel.status == 0, AstOrgUserModel.status == 1)\
+            .all()
+
+        return [row.orgId for row in result]
+
+    @staticmethod
     def getStatusLabel(id: int):
         statusList = {
             0: 'Новая',
@@ -118,11 +128,3 @@ class TaskStorage():
         }
 
         return statusList[id]
-
-    @ staticmethod
-    def getOrganizationsByOperatorId(id: int) -> List[int]:
-        return [row.orgId for row in session.query(AstOrgUserModel.orgId)
-                .select_from(AstOrgUserModel)
-                .join(AstUserModel, AstUserModel.id == AstOrgUserModel.userId)
-                .filter(AstUserModel.id == id, AstUserModel.status == 0, AstOrgUserModel.status == 1)
-                .all()]

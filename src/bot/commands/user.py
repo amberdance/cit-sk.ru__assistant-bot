@@ -20,7 +20,7 @@ class ChatUserHandler:
             chatId = message.chat.id
 
             if(ChatUserStorage.isUserRegistered(message.from_user.id)):
-                username = ChatUserStorage.getUserFields(
+                username = ChatUserStorage.getFields(
                     ChatUserModel.username, filter=[ChatUserModel.chatUserId == message.from_user.id])[0]['username']
 
                 return bot.send_message(chatId, f"{username}, Вы уже зарегистрированы")
@@ -123,7 +123,7 @@ class ChatUserHandler:
             __setUserSubscribtion(msg.message.chat.id, False)
 
         def __setUserSubscribtion(chatId: int, value: bool) -> None:
-            text = "подписаны на рассылку" if value is True else "отписаны от рассылки"
+            text = "подписались на рассылку" if value is True else "отписались от рассылки"
 
             try:
                 if not ChatUserStorage.isAdmin(chatId):

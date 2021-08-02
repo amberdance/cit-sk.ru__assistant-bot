@@ -9,12 +9,12 @@ session = TelegramBotDbContext().getSession()
 
 class ChatUserStorage():
 
-    @ staticmethod
+    @staticmethod
     def add(fields: dict) -> int:
         return BaseStorage.addRow(ChatUserModel(**fields), session)
 
     @staticmethod
-    def update() -> None:
+    def updateModel() -> None:
         BaseStorage.updateRow(session)
 
     @staticmethod
@@ -26,7 +26,7 @@ class ChatUserStorage():
         BaseStorage.deleteRow(user, session)
 
     @staticmethod
-    def getUserFields(*fields: Tuple, filter: Iterable = [], join: Tuple = None) -> List:
+    def getFields(*fields: Tuple, filter: Iterable = [], join: Tuple = None) -> List:
         query = session.query(*fields)
 
         if join is not None:
@@ -35,7 +35,7 @@ class ChatUserStorage():
         return [row._asdict() for row in query.filter(*filter).all()]
 
     @staticmethod
-    def getUser(*filter: tuple, ) -> Union[ChatUserModel, List[ChatUserModel]]:
+    def getModel(*filter: tuple, ) -> Union[ChatUserModel, List[ChatUserModel]]:
         result = [row for row in session.query(
             ChatUserModel).filter(*filter).all()]
 
@@ -43,11 +43,11 @@ class ChatUserStorage():
 
     @staticmethod
     def isUserRegistered(chatUserId) -> bool:
-        return bool(ChatUserStorage.getUserFields(ChatUserModel.id, filter=[ChatUserModel.chatUserId == chatUserId]))
+        return bool(ChatUserStorage.getFields(ChatUserModel.id, filter=[ChatUserModel.chatUserId == chatUserId]))
 
     @staticmethod
     def isAdmin(chatUserId: int) -> bool:
-        return bool(ChatUserStorage.getUserFields(ChatUserModel.role, filter=[ChatUserModel.role == 1, ChatUserModel.chatUserId == chatUserId]))
+        return bool(ChatUserStorage.getFields(ChatUserModel.role, filter=[ChatUserModel.role == 1, ChatUserModel.chatUserId == chatUserId]))
 
 
 class MessageStorage:
