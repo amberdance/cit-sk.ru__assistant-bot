@@ -1,13 +1,12 @@
-import logging
+
 from typing import Iterable, Tuple, Union, List
 from sqlalchemy.exc import DatabaseError
-from ..storage.base import BaseStorage
+from ..storage.base import BaseStorage, dbLog
 from ..models.chat import ChatUserModel, MessageModel
 from ..context import TelegramBotDbContext
 
 
 session = TelegramBotDbContext().getSession()
-dbLog = logging.getLogger('Database')
 
 
 class ChatUserStorage():

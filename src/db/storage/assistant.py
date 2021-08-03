@@ -3,13 +3,12 @@ import logging
 from typing import Iterable, Union, List
 from sqlalchemy.exc import DatabaseError, OperationalError
 from ..context import AssistantDbContext
-from ..storage.base import BaseStorage
+from ..storage.base import BaseStorage, dbLog
 from ..storage.chat import *
 from ..models.assistant import *
 
 
 session = AssistantDbContext().getSession()
-dbLog = logging.getLogger("Database")
 
 
 class AstUserStorage():
@@ -139,7 +138,7 @@ class TaskStorage():
             if limit is not None:
                 query = query.limit(limit)
 
-            return query.all()
+            return query
 
         except OperationalError:
             session = AssistantDbContext().getSession()

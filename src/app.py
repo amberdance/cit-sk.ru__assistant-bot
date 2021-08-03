@@ -1,21 +1,17 @@
 import logging
-from config import DEBUG_MODE, BASE_DIR
+from util import createLogger
+from config import DEBUG_MODE
 import bot
 
+
 if __name__ == "__main__":
-    logFile = f'{BASE_DIR}/app.log'
+    applicationLog = createLogger('Application', 'app.log')
+    accessLog = createLogger('aiohttp.access', 'access.log')
     logLevel = logging.DEBUG if DEBUG_MODE else logging.ERROR
-    logger = logging.getLogger("Application")
-    loggers = ('pymorphy2.opencorpora_dict.wrapper',
-               'asyncio', 'urllib3', 'aiohttp.access')
+    loggers = ('pymorphy2.opencorpora_dict.wrapper', 'asyncio', 'urllib3')
 
     for log in loggers:
         logging.getLogger(log).setLevel(logging.ERROR)
-
-    logging.basicConfig(handlers=[logging.FileHandler(logFile, "a", encoding="utf-8")],
-                        format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
-                        datefmt='%Y/%m/%d %H:%M:%S',
-                        level=logging.DEBUG)
 
     try:
         if DEBUG_MODE:
@@ -26,4 +22,4 @@ if __name__ == "__main__":
                            httpServerLoggingLevel=logLevel)
 
     except Exception as error:
-        logger.exception(error)
+        applicationLog.exception(error)
