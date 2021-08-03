@@ -92,7 +92,7 @@ class TaskStorage():
             dbLog.exception(error)
 
     @staticmethod
-    def getByOperatorId(operatorId: int, statusId: int = 0, limit: int = None, isOperatorAdmin=False) -> List:
+    def getByOperatorId(operatorId: int, statusId: int = 0, limit: int = None, order: str = "asc", isOperatorAdmin=False) -> List:
         global session
 
         queryFields = (
@@ -120,7 +120,13 @@ class TaskStorage():
                 .join(ClientDeviceModel, ClientDeviceModel.deviceId == TaskModel.deviceId)\
                 .join(DeviceModel, DeviceModel.id == ClientDeviceModel.deviceId)\
                 .filter(*filter)\
-                .order_by(TaskModel.id.desc())
+
+
+            if order == "asc":
+                query = query.order_by(TaskModel.id.asc())
+
+            elif order == "desc":
+                query = query.order_by(TaskModel.id.desc())
 
             if limit is not None:
                 query = query.limit(limit)

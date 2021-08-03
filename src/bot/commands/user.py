@@ -1,4 +1,3 @@
-import ast
 import re
 from sqlalchemy.exc import IntegrityError
 from telebot.apihelper import ApiTelegramException

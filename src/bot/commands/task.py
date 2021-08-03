@@ -1,4 +1,3 @@
-import re
 import ast
 import os
 import time
@@ -14,25 +13,26 @@ from db.storage.assistant import TaskStorage, TaskModel
 
 
 class TaskHandler:
-    def initialize(bot: TeleBot):
+
+    @staticmethod
+    def initialize(bot: TeleBot) -> None:
 
         # update task callback handler
         @bot.callback_query_handler(func=lambda message: message.data.split("|")[0].find("tasks:") == 0)
-        def updateTaskCommand(msg: CallbackQuery) -> None:
-            payload = ast.literal_eval(msg.data.split("|")[1])
-            chatId = msg.message.chat.id
-            messageId = msg.message.id
+        def updateTaskCommand(call: CallbackQuery) -> None:
+            payload = ast.literal_eval(call.data.split("|")[1])
+            chatId = call.message.chat.id
+            messageId = call.message.id
 
             try:
                 task = TaskStorage.getModel(TaskModel.id == payload['id'])
 
                 # preventing unnecessary update
-                if task.status == 1 and payload['status'] == 1:
+                if task.status == payload['status']:
                     return bot.delete_message(chatId, messageId)
 
                 task.status = payload['status']
-                task.operatorId = ChatUserStorage.getFields(ChatUserModel.astUserId, filter=[
-                                                            ChatUserModel.chatId == chatId])[0]['astUserId']
+                task.operatorId = ChatUserStorage.getOperatorId(chatId)
 
                 if(task.status == 2):
                     # at first we should to prevent multiple closing tasks
@@ -55,15 +55,15 @@ class TaskHandler:
                         chatId, f"Напишите комментарий к заявке <b>{task.id}</b>", parse_mode="html")
 
                     return bot.register_next_step_handler(
-                        msg.message, updateServiceDescriptionStep, task, messageId, msgFile)
+                        call.message, updateServiceDescriptionStep, task, messageId, msgFile)
 
                 task.serviceStartData = datetime.now().isoformat(" ", "seconds")
 
                 TaskStorage.updateModel()
 
+                bot.answer_callback_query(
+                    call.id,  f"Заявка {str(task.id)} принята в работу")
                 bot.delete_message(chatId, messageId)
-                bot.send_message(
-                    chatId, f"Заявка <b>{task.id}</b> принята в работу", parse_mode="html")
 
             except ApiTelegramException as error:
                 appLog.exception(error)
@@ -101,7 +101,7 @@ class TaskHandler:
 
                 bot.delete_message(chatId, taskMessageId)
                 bot.send_message(
-                    chatId, f"Заявка <b>{task.id}</b> отработана ✅", parse_mode="html")
+                    chatId, f"✅ Заявка <b>{task.id}</b> отработана", parse_mode="html")
 
             except ApiTelegramException as error:
                 appLog.exception(error)
@@ -112,13 +112,7 @@ class TaskHandler:
         def tasksDbWorker(interval=interval):
             while True:
                 try:
-                    users = ChatUserStorage.getFields(
-                        ChatUserModel.id,
-                        ChatUserModel.astUserId,
-                        ChatUserModel.username,
-                        ChatUserModel.chatId,
-                        ChatUserModel.role,
-                        filter=[ChatUserModel.isBlocked == False, ChatUserModel.isSubscriber == True])
+                    users = ChatUserStorage.getUsers()
 
                     if(bool(users) is False):
                         continue

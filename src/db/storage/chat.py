@@ -53,6 +53,19 @@ class ChatUserStorage():
             dbLog.exception(error)
 
     @staticmethod
+    def getUsers() -> List:
+        return ChatUserStorage.getFields(
+            ChatUserModel.id,
+            ChatUserModel.astUserId,
+            ChatUserModel.username,
+            ChatUserModel.chatId,
+            ChatUserModel.role,
+            filter=[
+                ChatUserModel.isBlocked == False,
+                ChatUserModel.isSubscriber == True
+            ])
+
+    @staticmethod
     def getOperatorId(chatId: int) -> int:
         return session.query(ChatUserModel.astUserId).filter(ChatUserModel.chatId == chatId).all()[0]['astUserId']
 

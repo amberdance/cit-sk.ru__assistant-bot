@@ -17,6 +17,6 @@ class ServiceCommandsController(BaseController):
             BotCommand("help", "справка"),
             BotCommand("reg", "регистрация пользователя"),
             BotCommand("userid", "user id"),
-            BotCommand("tasks", "работа с заявками [beta]"),
+            BotCommand("tasks", "работа с заявками"),
             BotCommand("cancel", "отмена текущего действия"),
         ])
