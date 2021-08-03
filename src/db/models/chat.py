@@ -11,7 +11,7 @@ def createTable() -> None:
     Base.metadata.create_all(TelegramBotDbContext().getEngine())
 
 
-class ChatUserModel(Base):
+class UserModel(Base):
     __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True, autoincrement=True)

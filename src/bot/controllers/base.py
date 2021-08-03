@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod
 import logging
 from typing import Iterable, List, Union
+from sqlalchemy.engine.row import Row
 from telebot import TeleBot
 from telebot.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from db.storage.assistant import TaskStorage
-from db.storage.chat import ChatUserStorage
+from db.storage.chat import UserStorage
 
 
 appLog: logging.Logger = logging.getLogger("Application")
@@ -33,7 +34,7 @@ class BaseController(ABC):
 
     @staticmethod
     def generateUpdateStatusButtons(taskId: int, chatId: int, statusId: int) -> Union[List, None]:
-        isAdmin = ChatUserStorage.isAdmin(chatId)
+        isAdmin = UserStorage.isAdmin(chatId)
         buttons = []
 
         if statusId == 0 and not isAdmin:
@@ -47,7 +48,7 @@ class BaseController(ABC):
         return buttons
 
     @staticmethod
-    def getTaskHTMLTemlpate(task: tuple) -> str:
+    def generateTaskHTMLTemlpate(task: Union[tuple, Row]) -> str:
         emoji = {
             0: "❗️",
             1: "❗️",
@@ -56,14 +57,15 @@ class BaseController(ABC):
             4: "🚫",
         }
 
-        html = (f"<b>Номер заявки:</b> {task.id}" +
-                f"\n<b>Дата создания:</b> {task.orderDate}" +
-                f"\n<b>Организация:</b> {task.org}" +
-                f"\n<b>Статус:</b> {TaskStorage.getStatusLabel(task.status)} {emoji[task.status]}" +
-                f"\n<b>Устройство:</b> {task.hid} {task.client}" +
-                f"\n<b>Неисправность:</b> {task.descr}")
+        html = (f"<b>Номер заявки:</b> {task.id} \
+                \n<b>Дата создания:</b> {task.orderDate} \
+                \n<b>Организация:</b> {task.org}\
+                \n<b>Статус:</b> {TaskStorage.getStatusLabel(task.status)} {emoji[task.status]}\
+                \n<b>Устройство:</b> {task.hid} {task.client}\
+                \n<b>Неисправность:</b> {task.descr}"
+                )
 
         if task.status > 0:
-            html += f"\n<b>Комментарий:</b>{task.serviceDescr or '-'}"
+            html += f"\n<b>Оператор:</b> {task.operator or '-'}\n<b>Комментарий:</b> {task.serviceDescr or '-'}"
 
         return html

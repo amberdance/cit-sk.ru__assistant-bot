@@ -2,7 +2,7 @@ import re
 from sqlalchemy.exc import IntegrityError
 from telebot.types import CallbackQuery
 from bot.controllers.base import BaseController, TeleBot, Message, InlineKeyboardButton, appLog
-from db.storage.chat import ChatUserStorage, ChatUserModel
+from db.storage.chat import UserStorage, UserModel
 from db.storage.assistant import AstUserStorage, AstUserModel, AstOrgUserModel
 
 
@@ -18,9 +18,9 @@ class ChatUserHandler:
 
             chatId = message.chat.id
 
-            if(ChatUserStorage.isUserRegistered(message.from_user.id)):
-                username = ChatUserStorage.getFields(
-                    ChatUserModel.username, filter=[ChatUserModel.chatUserId == message.from_user.id])[0]['username']
+            if(UserStorage.isUserRegistered(message.from_user.id)):
+                username = UserStorage.getFields(
+                    UserModel.username, filter=[UserModel.chatUserId == message.from_user.id])[0]['username']
 
                 return bot.send_message(chatId, f"{username}, Вы уже зарегистрированы")
 
@@ -33,6 +33,8 @@ class ChatUserHandler:
             email = message.text
 
             if(message.text == "/cancel"):
+                bot.send_message(message.chat.id, "Регистрация отменена")
+
                 return bot.clear_step_handler_by_chat_id(message.chat.id)
 
             if(bool(re.findall(r'[\w\.-]+@[\w\.-]+(?:\.[\w]+)+', email)) is False):
@@ -81,7 +83,7 @@ class ChatUserHandler:
             # cancel btn handle
             if payload[0] == 'reg:0':
                 bot.clear_step_handler(msg.message)
-                bot.send_message(chatId, "Ладно, в другой раз")
+                bot.send_message(chatId, "Регистрация отменена")
 
             # accept btn handle
             elif payload[0] == "reg:1":
@@ -91,7 +93,7 @@ class ChatUserHandler:
                     user = AstUserStorage.getAstUserModel(
                         AstUserModel.id == payload[1])
 
-                    ChatUserStorage.add({
+                    UserStorage.add({
                         "chatId": chatId,
                         "chatUserId": msg.from_user.id,
                         "astOrgId": payload[2],
@@ -125,11 +127,11 @@ class ChatUserHandler:
             text = "подписались на рассылку" if value is True else "отписались от рассылки"
 
             try:
-                if not ChatUserStorage.isAdmin(chatId):
+                if not UserStorage.isAdmin(chatId):
                     return
 
-                ChatUserStorage.updateByFields(
-                    [ChatUserModel.chatId == chatId], {'isSubscriber': value})
+                UserStorage.updateByFields(
+                    [UserModel.chatId == chatId], {'isSubscriber': value})
                 bot.send_message(chatId, f"Вы успешно {text}")
 
             except Exception as error:
@@ -139,7 +141,7 @@ class ChatUserHandler:
         @bot.message_handler(['purgeusr'])
         def purgeBlockedUsers(message: Message) -> None:
             try:
-                if not ChatUserStorage.isAdmin(message.chat.id):
+                if not UserStorage.isAdmin(message.chat.id):
                     return
 
                 AstUserStorage.purgeAllBlockedUsers()

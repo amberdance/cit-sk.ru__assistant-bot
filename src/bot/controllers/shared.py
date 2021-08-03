@@ -1,5 +1,5 @@
 from telebot.types import Message
-from db.storage.chat import ChatUserStorage
+from db.storage.chat import UserStorage
 from .base import BaseController, TeleBot
 
 
@@ -24,7 +24,7 @@ class CommonCommandsController(BaseController):
                 "/purgeusr - удалить заблокированных пользователей"
             )
 
-            result = "\n".join(baseCommands) + "\n" + "\n".join(adminCommands) if ChatUserStorage.isAdmin(
+            result = "\n".join(baseCommands) + "\n" + "\n".join(adminCommands) if UserStorage.isAdmin(
                 message.chat.id) else "\n".join(baseCommands)
 
             self._bot.send_message(message.chat.id, result)

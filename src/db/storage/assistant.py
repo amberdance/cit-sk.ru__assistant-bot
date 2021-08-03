@@ -1,6 +1,8 @@
 
 from typing import Iterable, Union, List
 from sqlalchemy.exc import SQLAlchemyError, OperationalError
+from sqlalchemy.engine.row import Row
+from sqlalchemy.orm.util import join
 from ..context import AssistantDbContext
 from ..storage.base import BaseStorage, dbLog
 from ..storage.chat import *
@@ -17,16 +19,16 @@ class AstUserStorage():
         if(bool(filter) is False):
             raise Exception("Filter parameter is required")
 
-        try:
-            fields = (
-                OrganizationModel.id.label('orgId'),
-                AstUserModel.id.label('userId'),
-                OrganizationModel.title,
-                AstOrgUserModel.id,
-                AstUserModel.email,
-                AstUserModel.username
-            )
+        fields = (
+            OrganizationModel.id.label('orgId'),
+            AstUserModel.id.label('userId'),
+            OrganizationModel.title,
+            AstOrgUserModel.id,
+            AstUserModel.email,
+            AstUserModel.username
+        )
 
+        try:
             return session.query(*fields).select_from(OrganizationModel).join(AstOrgUserModel, AstUserModel).filter(*filter).all()
 
         except SQLAlchemyError as error:
@@ -70,7 +72,7 @@ class TaskStorage():
         BaseStorage.deleteRow(task, session)
 
     @staticmethod
-    def getByFields(*fields: List, filter: Iterable = None, join: Iterable = None) -> List:
+    def getFields(*fields: List, filter: Iterable = None, join: Iterable = None) -> List:
         try:
             query = session.query(*fields).select_from(TaskModel)
 
@@ -98,8 +100,8 @@ class TaskStorage():
             dbLog.exception(error)
 
     @staticmethod
-    def getByOperatorId(operatorId: int, statusId: int = 0, limit: int = None, order: str = "asc", isOperatorAdmin=False) -> List:
-        global session
+    def getByConditions(operatorId: int,  statusId: int = None, taskId: int = None,
+                        limit: int = None, order: str = "asc", isUserAdmin=False) -> Union[List, Row]:
 
         queryFields = (
             TaskModel.id,
@@ -111,20 +113,30 @@ class TaskStorage():
             DeviceModel.hid,
             ClientDeviceModel.title.label('client'),
             OrganizationModel.title.label("org"),
+            AstUserModel.username.label('operator')
         )
 
-        filter = [TaskModel.status == statusId]
+        filter = []
 
-        if isOperatorAdmin is False:
+        if statusId is not None:
+            filter.append(TaskModel.status == statusId)
+
+        if taskId is not None:
+            filter.append(TaskModel.id == taskId)
+
+        if isUserAdmin is False:
             filter.append(TaskModel.clientOrgId.in_(
                 TaskStorage.getOrganizationsIdByOperatorId(operatorId)))
 
         try:
+            global session
+
             query = session.query(*queryFields)\
                 .select_from(TaskModel)\
                 .join(OrganizationModel, OrganizationModel.id == TaskModel.clientOrgId)\
                 .join(ClientDeviceModel, ClientDeviceModel.deviceId == TaskModel.deviceId)\
                 .join(DeviceModel, DeviceModel.id == ClientDeviceModel.deviceId)\
+                .outerjoin(AstUserModel, AstUserModel.id == TaskModel.operatorId) \
                 .filter(*filter)\
 
             if order == "asc":
@@ -136,7 +148,7 @@ class TaskStorage():
             if limit is not None:
                 query = query.limit(limit)
 
-            return query.all()
+            return query.all() if taskId is None else query.one()
 
         except OperationalError:
             session = AssistantDbContext().getSession()

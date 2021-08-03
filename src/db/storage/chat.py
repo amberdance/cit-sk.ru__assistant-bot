@@ -2,18 +2,18 @@
 from typing import Iterable, Tuple, Union, List
 from sqlalchemy.exc import SQLAlchemyError
 from ..storage.base import BaseStorage, dbLog
-from ..models.chat import ChatUserModel, MessageModel
+from ..models.chat import UserModel, MessageModel
 from ..context import TelegramBotDbContext
 
 
 session = TelegramBotDbContext().getSession()
 
 
-class ChatUserStorage():
+class UserStorage():
 
     @staticmethod
     def add(fields: dict) -> int:
-        return BaseStorage.addRow(ChatUserModel(**fields), session)
+        return BaseStorage.addRow(UserModel(**fields), session)
 
     @staticmethod
     def updateModel() -> None:
@@ -21,10 +21,10 @@ class ChatUserStorage():
 
     @staticmethod
     def updateByFields(filter: Iterable, fields: dict) -> None:
-        BaseStorage.updateRowByFields(ChatUserModel, filter, fields, session)
+        BaseStorage.updateRowByFields(UserModel, filter, fields, session)
 
     @staticmethod
-    def delete(user: ChatUserModel) -> None:
+    def delete(user: UserModel) -> None:
         BaseStorage.deleteRow(user, session)
 
     @staticmethod
@@ -41,10 +41,10 @@ class ChatUserStorage():
             dbLog.exception(error)
 
     @staticmethod
-    def getModel(*filter: tuple, ) -> Union[ChatUserModel, List[ChatUserModel]]:
+    def getModel(*filter: tuple, ) -> Union[UserModel, List[UserModel]]:
         try:
             result = [row for row in session.query(
-                ChatUserModel).filter(*filter).all()]
+                UserModel).filter(*filter).all()]
 
             return result[0] if len(result) == 1 else result
 
@@ -53,28 +53,28 @@ class ChatUserStorage():
 
     @staticmethod
     def getUsers() -> List:
-        return ChatUserStorage.getFields(
-            ChatUserModel.id,
-            ChatUserModel.astUserId,
-            ChatUserModel.username,
-            ChatUserModel.chatId,
-            ChatUserModel.role,
+        return UserStorage.getFields(
+            UserModel.id,
+            UserModel.astUserId,
+            UserModel.username,
+            UserModel.chatId,
+            UserModel.role,
             filter=[
-                ChatUserModel.isBlocked == False,
-                ChatUserModel.isSubscriber == True
+                UserModel.isBlocked == False,
+                UserModel.isSubscriber == True
             ])
 
     @staticmethod
     def getOperatorId(chatId: int) -> int:
-        return session.query(ChatUserModel.astUserId).filter(ChatUserModel.chatId == chatId).all()[0]['astUserId']
+        return session.query(UserModel.astUserId).filter(UserModel.chatId == chatId).all()[0]['astUserId']
 
     @staticmethod
-    def isUserRegistered(chatUserId) -> bool:
-        return bool(ChatUserStorage.getFields(ChatUserModel.id, filter=[ChatUserModel.chatUserId == chatUserId]))
+    def isUserRegistered(chatId) -> bool:
+        return bool(UserStorage.getFields(UserModel.id, filter=[UserModel.chatId == chatId]))
 
     @staticmethod
-    def isAdmin(chatUserId: int) -> bool:
-        return bool(ChatUserStorage.getFields(ChatUserModel.role, filter=[ChatUserModel.role == 1, ChatUserModel.chatUserId == chatUserId]))
+    def isAdmin(chatId: int) -> bool:
+        return bool(UserStorage.getFields(UserModel.role, filter=[UserModel.role == 1, UserModel.chatId == chatId]))
 
 
 class MessageStorage:

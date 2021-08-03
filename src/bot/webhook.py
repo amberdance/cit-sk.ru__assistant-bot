@@ -7,6 +7,7 @@ from .controllers import CommonCommandsController, DatabaseCommandsController, S
 
 
 class WebhookBot():
+
     __app: Application = web.Application()
     __bot: telebot.TeleBot = telebot.TeleBot(BOT_TOKEN)
 
@@ -35,12 +36,12 @@ class WebhookBot():
         )
 
     async def __handle(self, request) -> None:
-        if request.match_info.get('token') == self.__bot.token:
-            requestJSON = await request.json()
-            self.__bot.process_new_updates(
-                [telebot.types.Update.de_json(requestJSON)])
-
-            return web.Response()
-
-        else:
+        if request.match_info.get('token') != self.__bot.token:
             return web.Response(status=403)
+
+        requestJSON = await request.json()
+
+        self.__bot.process_new_updates(
+            [telebot.types.Update.de_json(requestJSON)])
+
+        return web.Response()

@@ -8,7 +8,7 @@ from telebot.apihelper import ApiTelegramException
 from telebot.types import CallbackQuery
 from config import BASE_DIR
 from bot.controllers.base import BaseController, TeleBot, Message, InlineKeyboardButton, appLog
-from db.storage.chat import ChatUserStorage, ChatUserModel
+from db.storage.chat import UserStorage, UserModel
 from db.storage.assistant import TaskStorage, TaskModel
 
 
@@ -32,7 +32,7 @@ class TaskHandler:
                     return bot.delete_message(chatId, messageId)
 
                 task.status = payload['status']
-                task.operatorId = ChatUserStorage.getOperatorId(chatId)
+                task.operatorId = UserStorage.getOperatorId(chatId)
 
                 if(task.status == 2):
                     # at first we should to prevent multiple closing tasks
@@ -76,7 +76,8 @@ class TaskHandler:
                 os.remove(msgFile)
 
                 bot.clear_step_handler_by_chat_id(message.chat.id)
-                bot.send_message(message.chat.id, "Действие отменено")
+                bot.send_message(
+                    message.chat.id, "Обновление статуса заявки отменено")
 
                 return
 
@@ -112,7 +113,7 @@ class TaskHandler:
         def tasksDbWorker(interval=interval):
             while True:
                 try:
-                    users = ChatUserStorage.getUsers()
+                    users = UserStorage.getUsers()
 
                     if(bool(users) is False):
                         continue
@@ -121,8 +122,8 @@ class TaskHandler:
                         isAdmin = bool(user['role'] == 1)
                         operatorId = user['astUserId']
                         chatId = user['chatId']
-                        tasks = TaskStorage.getByOperatorId(
-                            operatorId, isOperatorAdmin=isAdmin)
+                        tasks = TaskStorage.getByConditions(
+                            operatorId, statusId=0, isUserAdmin=isAdmin)
 
                         if(bool(tasks) is False):
                             continue
@@ -146,7 +147,7 @@ class TaskHandler:
                                 buttons.append(InlineKeyboardButton('Принять', callback_data='tasks:|{"id":%s,"status":1}' % (
                                     task.id)))
 
-                            bot.send_message(chatId, BaseController.getTaskHTMLTemlpate(task), parse_mode="html", reply_markup=None if len(
+                            bot.send_message(chatId, BaseController.generateTaskHTMLTemlpate(task), parse_mode="html", reply_markup=None if len(
                                 buttons) == 0 else BaseController.generateInlineButtons(buttons))
 
                         # delay imitation
@@ -159,8 +160,8 @@ class TaskHandler:
                     # blocking user to prevent mailing if chat id is missing
                     if(str(error).find("message not found") != -1):
 
-                        ChatUserStorage.updateByFields(
-                            [ChatUserModel.astUserId == operatorId], {"isBlocked": True, "isSubscriber": False})
+                        UserStorage.updateByFields(
+                            [UserModel.astUserId == operatorId], {"isBlocked": True, "isSubscriber": False})
 
                 except Exception as error:
                     appLog.exception(error)
