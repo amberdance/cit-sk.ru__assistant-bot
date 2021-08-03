@@ -11,17 +11,20 @@ class CommonCommandsController(BaseController):
         @self._bot.message_handler(['help', 'start'])
         def helpCommand(message: Message):
 
-            htmlTemplate = "\n/reg - регистрация нового пользователя" \
-                "\n/userid - id пользователя"  \
-                "\n/tasks - заявки" \
-                "\n/cancel - отмена текущей команды"
+            baseCommands = (
+                "/reg - регистрация нового пользователя",
+                "/userid - id пользователя",
+                "/tasks - заявки",
+                "/cancel - отмена текущей команды"
+            )
 
-            adminCommands = ""
+            adminCommands = (
+                "/subscribe - подписка на рассылку",
+                "/unsubscribe - отписаться от рассылки",
+                "/purgeusr - удалить заблокированных пользователей"
+            )
 
-            if ChatUserStorage.isAdmin(message.chat.id):
-                adminCommands = "\n/subscribe - подписка на рассылку, \
-                 \n/unsubscribe - отписаться от рассылки\
-                 \n/purgeusr - удалить заблокированных пользователей"
+            result = "\n".join(baseCommands) + "\n" + "\n".join(adminCommands) if ChatUserStorage.isAdmin(
+                message.chat.id) else "\n".join(baseCommands)
 
-            self._bot.send_message(
-                message.chat.id, htmlTemplate + adminCommands, parse_mode="html")
+            self._bot.send_message(message.chat.id, result)
