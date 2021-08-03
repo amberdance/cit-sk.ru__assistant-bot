@@ -118,7 +118,7 @@ class ChatUserHandler:
             bot.delete_message(chatId, msg.message.id)
 
         # subscribe callback handler
-        @bot.callback_query_handler(func=lambda message: message.data.find("subscription") == 0)
+        @bot.callback_query_handler(lambda message: message.data.find("subscription") == 0)
         def unsubscribe(msg: CallbackQuery) -> None:
             __setUserSubscribtion(msg.message.chat.id, False)
 
@@ -136,6 +136,3 @@ class ChatUserHandler:
             except ApiTelegramException as error:
                 appLog.exception(error)
                 bot.send_message(chatId, "Что-то пошло не так")
-
-            except Exception as error:
-                appLog.exception(error)

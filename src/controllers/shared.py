@@ -11,13 +11,9 @@ class CommonCommandsController(BaseController):
         @self._bot.message_handler(['help', 'start'])
         def helpCommand(message: Message):
 
-            htmlTemplate = "<b>Пользователь:</b>" \
-                "\n/reg - регистрация нового пользователя" \
+            htmlTemplate = "\n/reg - регистрация нового пользователя" \
                 "\n /userid - id пользователя"  \
-                "\n\n<b>Работа с заявками:</b>" \
-                "\n/tasks - новые заявки" \
-                "\n/tasks-1 - принятые заявки" \
-                "\n\n<b>Общее:</b>" \
+                "\n/tasks - заявки [beta]" \
                 "\n/cancel - отмена текущей команды"
 
             adminCommands = ""

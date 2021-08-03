@@ -1,3 +1,4 @@
+from bot.commands.taskmenu import TaskMenuHandler
 from controllers.base import BaseController, TeleBot
 from bot.commands import *
 
@@ -9,5 +10,6 @@ class DatabaseCommandsController(BaseController):
 
     def initialize(self) -> None:
         # TaskHandler.scanningTasks(self._bot, 180)
-        ChatUserHandler.initialize(self._bot)
         TaskHandler.initialize(self._bot)
+        TaskMenuHandler(self._bot)
+        ChatUserHandler.initialize(self._bot)

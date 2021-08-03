@@ -1,10 +1,13 @@
+import logging
 from typing import Iterable, Tuple, Union, List
+from sqlalchemy.exc import DatabaseError
 from ..storage.base import BaseStorage
 from ..models.chat import ChatUserModel, MessageModel
 from ..context import TelegramBotDbContext
 
 
 session = TelegramBotDbContext().getSession()
+dbLog = logging.getLogger('Database')
 
 
 class ChatUserStorage():
@@ -27,19 +30,31 @@ class ChatUserStorage():
 
     @staticmethod
     def getFields(*fields: Tuple, filter: Iterable = [], join: Tuple = None) -> List:
-        query = session.query(*fields)
+        try:
+            query = session.query(*fields)
 
-        if join is not None:
-            query = session.query.join(*join)
+            if join is not None:
+                query = session.query.join(*join)
 
-        return [row._asdict() for row in query.filter(*filter).all()]
+            return [row._asdict() for row in query.filter(*filter).all()]
+
+        except DatabaseError as error:
+            dbLog.exception(error)
 
     @staticmethod
     def getModel(*filter: tuple, ) -> Union[ChatUserModel, List[ChatUserModel]]:
-        result = [row for row in session.query(
-            ChatUserModel).filter(*filter).all()]
+        try:
+            result = [row for row in session.query(
+                ChatUserModel).filter(*filter).all()]
 
-        return result[0] if len(result) == 1 else result
+            return result[0] if len(result) == 1 else result
+
+        except DatabaseError as error:
+            dbLog.exception(error)
+
+    @staticmethod
+    def getOperatorId(chatId: int) -> int:
+        return session.query(ChatUserModel.astUserId).filter(ChatUserModel.chatId == chatId).all()[0]['astUserId']
 
     @staticmethod
     def isUserRegistered(chatUserId) -> bool:

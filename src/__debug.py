@@ -1,5 +1,5 @@
-from db.models.chat import MessageModel, createTable
+
 from db.storage.assistant import TaskStorage
 
 
-createTable()
+print(TaskStorage.getByOperatorId(6793, 2))
