@@ -56,3 +56,17 @@ class BaseStorage:
             dbLog.exception(error)
 
             raise
+
+    @staticmethod
+    def deleteRowByFilter(model: object, filter: Iterable, session: Session) -> bool:
+        try:
+            session.query(model).filter(*filter).delete()
+            session.commit()
+
+            return True
+
+        except DatabaseError as error:
+            session.rollback()
+            dbLog.exception(error)
+
+            return False

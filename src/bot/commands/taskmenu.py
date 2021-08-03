@@ -77,8 +77,9 @@ class TaskMenuHandler:
         status = int(status)
 
         try:
+            isAdmin = ChatUserStorage.isAdmin(message.chat.id)
             tasks = list(reversed(TaskStorage.getByOperatorId(ChatUserStorage.getOperatorId(
-                message.chat.id), status, limit=6 if status > 0 else None, order="desc")))
+                message.chat.id), status, limit=6 if status > 0 else None, order="desc", isOperatorAdmin=isAdmin)))
             tasksLen = len(tasks)
 
             if(tasksLen == 0):

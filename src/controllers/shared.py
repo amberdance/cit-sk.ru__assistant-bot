@@ -12,14 +12,16 @@ class CommonCommandsController(BaseController):
         def helpCommand(message: Message):
 
             htmlTemplate = "\n/reg - регистрация нового пользователя" \
-                "\n /userid - id пользователя"  \
+                "\n/userid - id пользователя"  \
                 "\n/tasks - заявки" \
                 "\n/cancel - отмена текущей команды"
 
             adminCommands = ""
 
             if ChatUserStorage.isAdmin(message.chat.id):
-                adminCommands = "\n/subscribe - подписка на рассылку, \n/unsubscribe - отписаться от рассылки"
+                adminCommands = "\n/subscribe - подписка на рассылку, \
+                 \n/unsubscribe - отписаться от рассылки\
+                 \n/purgeusr - удалить заблокированных пользователей"
 
             self._bot.send_message(
                 message.chat.id, htmlTemplate + adminCommands, parse_mode="html")

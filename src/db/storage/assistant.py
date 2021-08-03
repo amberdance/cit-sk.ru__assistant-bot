@@ -46,7 +46,15 @@ class AstUserStorage():
             return result[0] if len(result) == 1 else result
 
         except DatabaseError as error:
-            dbLog.exception(logging.error)
+            dbLog.exception(error)
+
+    @staticmethod
+    def purgeAllBlockedUsers() -> None:
+        BaseStorage.deleteRowByFilter(
+            AstUserModel, [AstUserModel.status == 1], session)
+
+        BaseStorage.deleteRowByFilter(
+            AstOrgUserModel, [AstOrgUserModel.status == 0], session)
 
 
 class TaskStorage():

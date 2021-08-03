@@ -8,8 +8,9 @@ from db.storage.assistant import AstUserStorage, AstUserModel, AstOrgUserModel
 
 
 class ChatUserHandler:
-    def initialize(bot: TeleBot):
 
+    @staticmethod
+    def initialize(bot: TeleBot) -> None:
         @bot.message_handler(["reg"])
         def stepOne(message: Message):
 
@@ -135,3 +136,17 @@ class ChatUserHandler:
             except ApiTelegramException as error:
                 appLog.exception(error)
                 bot.send_message(chatId, "Что-то пошло не так")
+
+        @bot.message_handler(['purgeusr'])
+        def purgeBlockedUsers(message: Message) -> None:
+            try:
+                if not ChatUserStorage.isAdmin(message.chat.id):
+                    return
+
+                AstUserStorage.purgeAllBlockedUsers()
+                bot.send_message(message.chat.id, "Успех")
+
+            except Exception:
+                appLog.exception(Exception)
+                bot.send_message(
+                    message.chat.id, "Не удалось удалить пользователей")

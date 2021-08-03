@@ -17,17 +17,13 @@ if __name__ == "__main__":
                         datefmt='%Y/%m/%d %H:%M:%S',
                         level=logging.DEBUG)
 
-    if DEBUG_MODE:
-        try:
+    try:
+        if DEBUG_MODE:
             bot.PollingBot(noneStopPolling=False)
 
-        except Exception as error:
-            logger.exception(error)
-
-    else:
-        try:
+        else:
             bot.WebhookBot(botLoggingLevel=logLevel,
                            httpServerLoggingLevel=logLevel)
 
-        except Exception as error:
-            logger.exception(error)
+    except Exception as error:
+        logger.exception(error)

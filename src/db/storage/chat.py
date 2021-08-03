@@ -85,8 +85,12 @@ class MessageStorage:
         return BaseStorage.addRow(MessageModel(**fields), session)
 
     @staticmethod
-    def delete(message: object) -> None:
-        BaseStorage.deleteRow(message, session)
+    def updateModel() -> None:
+        BaseStorage.updateRow(session)
+
+    @staticmethod
+    def updateByFields(id: int, fields: dict) -> None:
+        BaseStorage.updateRowByFields(MessageModel, id, fields, session)
 
     @staticmethod
     def delete(id: object) -> None:

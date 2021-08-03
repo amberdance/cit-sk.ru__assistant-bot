@@ -49,7 +49,7 @@ class BaseController(ABC):
     @staticmethod
     def getTaskHTMLTemlpate(task: tuple) -> str:
         emoji = {
-            0: "⚠️",
+            0: "❗️",
             1: "❗️",
             2: "✅",
             3: "🚫",
