@@ -6,7 +6,8 @@ import bot
 
 if __name__ == "__main__":
     applicationLog = createLogger('Application', 'app.log')
-    accessLog = createLogger('aiohttp.access', 'access.log')
+    createLogger('Database', 'app.log')
+
     logLevel = logging.DEBUG if DEBUG_MODE else logging.ERROR
     loggers = ('pymorphy2.opencorpora_dict.wrapper', 'asyncio', 'urllib3')
 
@@ -18,6 +19,8 @@ if __name__ == "__main__":
             bot.PollingBot(noneStopPolling=False)
 
         else:
+            createLogger('aiohttp.access', 'access.log')
+
             bot.WebhookBot(botLoggingLevel=logLevel,
                            httpServerLoggingLevel=logLevel)
 

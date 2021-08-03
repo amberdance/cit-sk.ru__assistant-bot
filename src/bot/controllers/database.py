@@ -1,5 +1,5 @@
 from bot.commands.taskmenu import TaskMenuHandler
-from controllers.base import BaseController, TeleBot
+from .base import BaseController, TeleBot
 from bot.commands import *
 
 

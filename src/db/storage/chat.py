@@ -1,6 +1,6 @@
 
 from typing import Iterable, Tuple, Union, List
-from sqlalchemy.exc import DatabaseError
+from sqlalchemy.exc import SQLAlchemyError
 from ..storage.base import BaseStorage, dbLog
 from ..models.chat import ChatUserModel, MessageModel
 from ..context import TelegramBotDbContext
@@ -37,7 +37,7 @@ class ChatUserStorage():
 
             return [row._asdict() for row in query.filter(*filter).all()]
 
-        except DatabaseError as error:
+        except SQLAlchemyError as error:
             dbLog.exception(error)
 
     @staticmethod
@@ -48,7 +48,7 @@ class ChatUserStorage():
 
             return result[0] if len(result) == 1 else result
 
-        except DatabaseError as error:
+        except SQLAlchemyError as error:
             dbLog.exception(error)
 
     @staticmethod

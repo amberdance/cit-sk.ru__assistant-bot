@@ -1,7 +1,7 @@
 import logging
 import telebot
 from config import BOT_TOKEN
-from controllers import DatabaseCommandsController, CommonCommandsController, ServiceCommandsController
+from .controllers import DatabaseCommandsController, CommonCommandsController, ServiceCommandsController
 
 
 class PollingBot():

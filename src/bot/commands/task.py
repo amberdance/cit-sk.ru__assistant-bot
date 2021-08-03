@@ -7,7 +7,7 @@ from pymorphy2 import MorphAnalyzer
 from telebot.apihelper import ApiTelegramException
 from telebot.types import CallbackQuery
 from config import BASE_DIR
-from controllers.base import BaseController, TeleBot, Message, InlineKeyboardButton, appLog
+from bot.controllers.base import BaseController, TeleBot, Message, InlineKeyboardButton, appLog
 from db.storage.chat import ChatUserStorage, ChatUserModel
 from db.storage.assistant import TaskStorage, TaskModel
 
@@ -65,9 +65,9 @@ class TaskHandler:
                     call.id,  f"Заявка {str(task.id)} принята в работу")
                 bot.delete_message(chatId, messageId)
 
-            except ApiTelegramException as error:
-                appLog.exception(error)
+            except Exception as error:
                 bot.send_message(chatId, "Что-то пошло не так")
+                appLog.exception(error)
 
         def updateServiceDescriptionStep(message: Message, task: TaskModel,  taskMessageId: int, msgFile: str) -> None:
             chatId = message.chat.id
@@ -103,9 +103,9 @@ class TaskHandler:
                 bot.send_message(
                     chatId, f"✅ Заявка <b>{task.id}</b> отработана", parse_mode="html")
 
-            except ApiTelegramException as error:
-                appLog.exception(error)
+            except Exception as error:
                 bot.send_message(chatId, "Что-то пошло не так")
+                appLog.exception(error)
 
     @staticmethod
     def scanningTasks(bot: TeleBot, interval: int) -> None:

@@ -3,7 +3,7 @@ from aiohttp.web_app import Application
 from aiohttp import web
 import telebot
 from config import BOT_TOKEN, WEBHOOK_URL_BASE, WEBHOOK_URL_PATH, WEBHOOK_LISTEN, WEBHOOK_LISTEN_PORT
-from controllers import CommonCommandsController, DatabaseCommandsController, ServiceCommandsController
+from .controllers import CommonCommandsController, DatabaseCommandsController, ServiceCommandsController
 
 
 class WebhookBot():

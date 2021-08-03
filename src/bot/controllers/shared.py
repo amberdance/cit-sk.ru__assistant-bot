@@ -1,6 +1,6 @@
 from telebot.types import Message
 from db.storage.chat import ChatUserStorage
-from controllers.base import BaseController, TeleBot
+from .base import BaseController, TeleBot
 
 
 class CommonCommandsController(BaseController):

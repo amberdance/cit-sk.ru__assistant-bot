@@ -1,7 +1,6 @@
 
-import logging
 from typing import Iterable, Union, List
-from sqlalchemy.exc import DatabaseError, OperationalError
+from sqlalchemy.exc import SQLAlchemyError, OperationalError
 from ..context import AssistantDbContext
 from ..storage.base import BaseStorage, dbLog
 from ..storage.chat import *
@@ -30,7 +29,7 @@ class AstUserStorage():
 
             return session.query(*fields).select_from(OrganizationModel).join(AstOrgUserModel, AstUserModel).filter(*filter).all()
 
-        except DatabaseError as error:
+        except SQLAlchemyError as error:
             dbLog.exception(error)
 
     @staticmethod
@@ -44,7 +43,7 @@ class AstUserStorage():
 
             return result[0] if len(result) == 1 else result
 
-        except DatabaseError as error:
+        except SQLAlchemyError as error:
             dbLog.exception(error)
 
     @staticmethod
@@ -80,7 +79,7 @@ class TaskStorage():
 
             return [row._asdict() for row in query.filter(*filter).all()]
 
-        except DatabaseError as error:
+        except SQLAlchemyError as error:
             dbLog.exception(error)
 
     @staticmethod
@@ -95,7 +94,7 @@ class TaskStorage():
 
             return result[0] if len(result) == 1 else result
 
-        except DatabaseError as error:
+        except SQLAlchemyError as error:
             dbLog.exception(error)
 
     @staticmethod
@@ -118,7 +117,7 @@ class TaskStorage():
 
         if isOperatorAdmin is False:
             filter.append(TaskModel.clientOrgId.in_(
-                TaskStorage.getOrganizationsByOperatorId(operatorId)))
+                TaskStorage.getOrganizationsIdByOperatorId(operatorId)))
 
         try:
             query = session.query(*queryFields)\
@@ -127,7 +126,6 @@ class TaskStorage():
                 .join(ClientDeviceModel, ClientDeviceModel.deviceId == TaskModel.deviceId)\
                 .join(DeviceModel, DeviceModel.id == ClientDeviceModel.deviceId)\
                 .filter(*filter)\
-
 
             if order == "asc":
                 query = query.order_by(TaskModel.id.asc())
@@ -138,13 +136,16 @@ class TaskStorage():
             if limit is not None:
                 query = query.limit(limit)
 
-            return query
+            return query.all()
 
         except OperationalError:
             session = AssistantDbContext().getSession()
 
+        except SQLAlchemyError as error:
+            dbLog.exception(error)
+
     @staticmethod
-    def getOrganizationsByOperatorId(id: int) -> List[int]:
+    def getOrganizationsIdByOperatorId(id: int) -> List[int]:
         try:
             result = session.query(AstOrgUserModel.orgId) \
                 .select_from(AstOrgUserModel) \
@@ -154,7 +155,7 @@ class TaskStorage():
 
             return [row.orgId for row in result]
 
-        except DatabaseError as error:
+        except SQLAlchemyError as error:
             dbLog.exception(error)
 
     @staticmethod

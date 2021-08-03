@@ -1,8 +1,7 @@
 import re
 from sqlalchemy.exc import IntegrityError
-from telebot.apihelper import ApiTelegramException
 from telebot.types import CallbackQuery
-from controllers.base import BaseController, TeleBot, Message, InlineKeyboardButton, appLog
+from bot.controllers.base import BaseController, TeleBot, Message, InlineKeyboardButton, appLog
 from db.storage.chat import ChatUserStorage, ChatUserModel
 from db.storage.assistant import AstUserStorage, AstUserModel, AstOrgUserModel
 
@@ -108,7 +107,7 @@ class ChatUserHandler:
                     bot.send_message(
                         chatId, 'Пользователь с таким email уже зарегистрирован')
 
-                except ApiTelegramException as error:
+                except Exception as error:
                     bot.send_message(chatId, "Что-то пошло не так")
                     appLog.exception(error)
 
@@ -133,9 +132,9 @@ class ChatUserHandler:
                     [ChatUserModel.chatId == chatId], {'isSubscriber': value})
                 bot.send_message(chatId, f"Вы успешно {text}")
 
-            except ApiTelegramException as error:
-                appLog.exception(error)
+            except Exception as error:
                 bot.send_message(chatId, "Что-то пошло не так")
+                appLog.exception(error)
 
         @bot.message_handler(['purgeusr'])
         def purgeBlockedUsers(message: Message) -> None:
@@ -146,7 +145,7 @@ class ChatUserHandler:
                 AstUserStorage.purgeAllBlockedUsers()
                 bot.send_message(message.chat.id, "Успех")
 
-            except Exception:
-                appLog.exception(Exception)
+            except Exception as error:
                 bot.send_message(
                     message.chat.id, "Не удалось удалить пользователей")
+                appLog.exception(error)

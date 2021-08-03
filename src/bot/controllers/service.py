@@ -1,5 +1,5 @@
 from telebot.types import BotCommand
-from controllers.base import BaseController, Message, TeleBot
+from .base import BaseController, Message, TeleBot
 
 
 class ServiceCommandsController(BaseController):
@@ -9,7 +9,7 @@ class ServiceCommandsController(BaseController):
 
     def initialize(self) -> None:
         @self._bot.message_handler(['userid'])
-        def getModelIdCommand(message: Message) -> None:
+        def userIdCommand(message: Message) -> None:
             self._bot.reply_to(message, f'Ваш Id: {message.from_user.id}')
 
     def registerBotCommands(self) -> None:

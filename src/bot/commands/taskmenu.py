@@ -1,7 +1,7 @@
 from typing import Union
 from telebot.apihelper import ApiTelegramException
 from telebot.types import CallbackQuery, InlineKeyboardMarkup
-from controllers.base import BaseController, TeleBot, Message, InlineKeyboardButton, appLog
+from bot.controllers.base import BaseController, TeleBot, Message, InlineKeyboardButton, appLog
 from db.storage.assistant import TaskStorage
 from db.storage.chat import ChatUserStorage
 
@@ -9,7 +9,7 @@ from db.storage.chat import ChatUserStorage
 class TaskMenuHandler:
 
     __bot: TeleBot = None
-    __menu = None
+    __menu: dict = None
 
     def __init__(self, bot: TeleBot) -> None:
         self.__bot = bot
@@ -108,6 +108,6 @@ class TaskMenuHandler:
 
             self.__bot.delete_message(message.chat.id, message.id)
 
-        except ApiTelegramException as error:
-            appLog.exception(error)
+        except Exception as error:
             self.__bot.send_message(message.chat.id, "Что-то пошло не так")
+            appLog.exception(error)
