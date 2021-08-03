@@ -6,7 +6,8 @@ if __name__ == "__main__":
     logFile = f'{BASE_DIR}/app.log'
     logLevel = logging.DEBUG if DEBUG_MODE else logging.ERROR
     logger = logging.getLogger("Application")
-    loggers = ('pymorphy2.opencorpora_dict.wrapper', 'asyncio', 'urllib3',)
+    loggers = ('pymorphy2.opencorpora_dict.wrapper',
+               'asyncio', 'urllib3', 'aiohttp.access')
 
     for log in loggers:
         logging.getLogger(log).setLevel(logging.ERROR)

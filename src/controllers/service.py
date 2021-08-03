@@ -16,7 +16,7 @@ class ServiceCommandsController(BaseController):
         self._bot.set_my_commands([
             BotCommand("help", "справка"),
             BotCommand("reg", "регистрация пользователя"),
-            BotCommand("userid", "user id"),
-            BotCommand("tasks", "работа с заявками"),
+            BotCommand("userid", "id пользователя"),
+            BotCommand("tasks", "заявки"),
             BotCommand("cancel", "отмена текущего действия"),
         ])

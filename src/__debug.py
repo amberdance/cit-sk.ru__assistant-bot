@@ -1,5 +1,6 @@
 
 from db.storage.assistant import TaskStorage
 
-
-print(TaskStorage.getByOperatorId(6793, 2))
+test1 = False
+test = test1 or "test2"
+print(test)

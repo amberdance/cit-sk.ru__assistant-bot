@@ -13,7 +13,7 @@ class CommonCommandsController(BaseController):
 
             htmlTemplate = "\n/reg - регистрация нового пользователя" \
                 "\n /userid - id пользователя"  \
-                "\n/tasks - заявки [beta]" \
+                "\n/tasks - заявки" \
                 "\n/cancel - отмена текущей команды"
 
             adminCommands = ""

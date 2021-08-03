@@ -64,6 +64,6 @@ class BaseController(ABC):
                 f"\n<b>Неисправность:</b> {task.descr}")
 
         if task.status > 0:
-            html += f"\n<b>Комментарий:</b>{task.serviceDescr}"
+            html += f"\n<b>Комментарий:</b>{task.serviceDescr or ''}"
 
         return html

@@ -65,10 +65,6 @@ class TaskMenuHandler:
                 args = payload[2] if len(payload) > 2 else None
                 callback = self.__menu[key]['callback'] if 'callback' in self.__menu[key] else None
 
-                # if "title" in self.__menu[key]:
-                #     self.__bot.edit_message_text(
-                #         self.__menu[key]['title'], call.message.chat.id, call.message.id, call.inline_message_id)
-
                 if callback is not None:
                     return callback(call.message, call, args)
 
