@@ -7,7 +7,6 @@ from .controllers import DatabaseCommandsController, CommonCommandsController, S
 class PollingBot():
 
     def __init__(self, noneStopPolling: bool = True, logLevel=logging.ERROR, interval: int = 0, timeout: int = 20) -> None:
-        logger = logging.getLogger('Application')
         bot = telebot.TeleBot(BOT_TOKEN)
 
         telebot.logger.setLevel(logLevel)
@@ -19,7 +18,8 @@ class PollingBot():
         for controller in controllers:
             controller(bot).initialize()
 
-        logger.info("Polling Bot started")
+        logging.getLogger('Application').info("Polling Bot started")
+
 
         bot.polling(none_stop=noneStopPolling,
                     interval=interval, timeout=timeout)

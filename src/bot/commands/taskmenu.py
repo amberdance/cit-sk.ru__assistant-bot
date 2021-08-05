@@ -1,5 +1,5 @@
 import re
-from typing import Union, final
+from typing import Union
 from telebot.apihelper import ApiTelegramException
 from telebot.types import CallbackQuery, InlineKeyboardMarkup
 from bot.controllers.base import BaseController, TeleBot, Message, InlineKeyboardButton, appLog
@@ -8,7 +8,6 @@ from db.storage.assistant import TaskStorage
 from db.storage.chat import UserStorage
 
 
-@final
 class TaskMenuHandler:
 
     bot: TeleBot = None
@@ -117,7 +116,8 @@ class TaskMenuHandler:
 
             return repeatStep()
 
-        user = UserStorage.getFields(UserModel.astUserId, UserModel.role)[0]
+        user = UserStorage.getFields(UserModel.astUserId, UserModel.role, filter=[
+                                     UserModel.chatId == chatId])[0]
         taskId = int(message.text)
         task = TaskStorage.getByConditions(
             operatorId=user['astUserId'], taskId=taskId, isUserAdmin=bool(user['role'] == 1))
@@ -130,7 +130,7 @@ class TaskMenuHandler:
 
         else:
             self.bot.send_message(
-                chatId, BaseController.generateTaskHTMLTemlpate(task), parse_mode="html")
+                chatId, BaseController.generateTaskHTMLTemlpate(task[0]), parse_mode="html")
 
         return repeatStep()
 

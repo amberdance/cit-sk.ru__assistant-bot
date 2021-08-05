@@ -1,11 +1,11 @@
 import os
 import logging
-from config import BASE_DIR, DEBUG_MODE
+from config import BASE_DIR
 
 
-def createLogger(name: str, fileName: str) -> logging.Logger:
+def createLogger(name: str, fileName: str, level: int = logging.DEBUG) -> logging.Logger:
     logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG if DEBUG_MODE else logging.ERROR)
+    logger.setLevel(level)
 
     fileHandler = logging.FileHandler(
         os.path.join(BASE_DIR, fileName), "a", encoding="utf8")

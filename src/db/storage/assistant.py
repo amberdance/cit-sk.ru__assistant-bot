@@ -147,7 +147,7 @@ class TaskStorage():
             if limit is not None:
                 query = query.limit(limit)
 
-            return query.all() if taskId is None else query.one()
+            return query.all()
 
         except OperationalError:
             session = AssistantDbContext().getSession()

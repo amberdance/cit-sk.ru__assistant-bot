@@ -26,8 +26,7 @@ class WebhookBot():
         for controller in controllers:
             controller(self.__bot).initialize()
 
-        logging.getLogger('Application')
-        logging.info("WebhookBot initialized")
+        logging.getLogger('Application').info("WebhookBot initialized")
 
         web.run_app(
             self.__app,

@@ -48,7 +48,6 @@ class UserStorage():
 
             return result[0] if len(result) == 1 else result
 
- 
         except DatabaseError as error:
             dbLog.exception(error)
 
@@ -76,6 +75,10 @@ class UserStorage():
     @staticmethod
     def isAdmin(chatId: int) -> bool:
         return bool(UserStorage.getFields(UserModel.role, filter=[UserModel.role == 1, UserModel.chatId == chatId]))
+
+    @staticmethod
+    def isSuperUser(chatId: int) -> bool:
+        return bool(UserStorage.getFields(UserModel.role, filter=[UserModel.role == 2, UserModel.chatId == chatId]))
 
 
 class MessageStorage:
