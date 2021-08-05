@@ -6,7 +6,6 @@ import bot
 
 if __name__ == "__main__":
     applicationLog = createLogger('Application', 'app.log')
-    createLogger('Database', 'app.log')
 
     logLevel = logging.DEBUG if DEBUG_MODE else logging.ERROR
     loggers = ('pymorphy2.opencorpora_dict.wrapper', 'asyncio', 'urllib3')

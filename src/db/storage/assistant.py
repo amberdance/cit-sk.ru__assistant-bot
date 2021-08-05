@@ -1,8 +1,7 @@
 
 from typing import Iterable, Union, List
-from sqlalchemy.exc import SQLAlchemyError, OperationalError
+from sqlalchemy.exc import OperationalError, DatabaseError
 from sqlalchemy.engine.row import Row
-from sqlalchemy.orm.util import join
 from ..context import AssistantDbContext
 from ..storage.base import BaseStorage, dbLog
 from ..storage.chat import *
@@ -31,7 +30,7 @@ class AstUserStorage():
         try:
             return session.query(*fields).select_from(OrganizationModel).join(AstOrgUserModel, AstUserModel).filter(*filter).all()
 
-        except SQLAlchemyError as error:
+        except DatabaseError as error:
             dbLog.exception(error)
 
     @staticmethod
@@ -45,7 +44,7 @@ class AstUserStorage():
 
             return result[0] if len(result) == 1 else result
 
-        except SQLAlchemyError as error:
+        except DatabaseError as error:
             dbLog.exception(error)
 
     @staticmethod
@@ -81,7 +80,7 @@ class TaskStorage():
 
             return [row._asdict() for row in query.filter(*filter).all()]
 
-        except SQLAlchemyError as error:
+        except DatabaseError as error:
             dbLog.exception(error)
 
     @staticmethod
@@ -96,7 +95,7 @@ class TaskStorage():
 
             return result[0] if len(result) == 1 else result
 
-        except SQLAlchemyError as error:
+        except DatabaseError as error:
             dbLog.exception(error)
 
     @staticmethod
@@ -153,7 +152,7 @@ class TaskStorage():
         except OperationalError:
             session = AssistantDbContext().getSession()
 
-        except SQLAlchemyError as error:
+        except DatabaseError as error:
             dbLog.exception(error)
 
     @staticmethod
@@ -167,7 +166,7 @@ class TaskStorage():
 
             return [row.orgId for row in result]
 
-        except SQLAlchemyError as error:
+        except DatabaseError as error:
             dbLog.exception(error)
 
     @staticmethod

@@ -1,7 +1,7 @@
 import logging
 from typing import Iterable
 from sqlalchemy.orm.session import Session
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import DatabaseError
 
 dbLog = logging.getLogger('Database')
 
@@ -16,7 +16,7 @@ class BaseStorage:
 
             return model.id
 
-        except SQLAlchemyError as error:
+        except DatabaseError as error:
             session.rollback()
             dbLog.exception(error)
 
@@ -27,7 +27,7 @@ class BaseStorage:
         try:
             session.commit()
 
-        except SQLAlchemyError as error:
+        except DatabaseError as error:
             session.rollback()
             dbLog.exception(error)
 
@@ -39,7 +39,7 @@ class BaseStorage:
             session.query(model).filter(*filter).update(fields)
             session.commit()
 
-        except SQLAlchemyError as error:
+        except DatabaseError as error:
             session.rollback()
             dbLog.exception(error)
 
@@ -51,7 +51,7 @@ class BaseStorage:
             session.delete(model)
             session.commit()
 
-        except SQLAlchemyError as error:
+        except DatabaseError as error:
             session.rollback()
             dbLog.exception(error)
 
@@ -65,7 +65,7 @@ class BaseStorage:
 
             return True
 
-        except SQLAlchemyError as error:
+        except DatabaseError as error:
             session.rollback()
             dbLog.exception(error)
 
