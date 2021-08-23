@@ -70,6 +70,8 @@ class ChatUserHandler:
         # subscribe command handler
         @bot.message_handler(["subscribe", "unsubscribe"])
         def subscribtionCommand(message: Message) -> None:
+            if BaseController.isPublicChat(message):
+                return
             value = True if message.text == "/subscribe" else False
 
             __setUserSubscribtion(message.chat.id, value)
@@ -140,6 +142,9 @@ class ChatUserHandler:
 
         @bot.message_handler(['purgeusr'])
         def purgeBlockedUsers(message: Message) -> None:
+            if BaseController.isPublicChat(message):
+                return
+
             try:
                 if not UserStorage.isAdmin(message.chat.id):
                     return

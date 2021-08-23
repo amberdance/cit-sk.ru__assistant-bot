@@ -22,7 +22,7 @@ class BaseController(ABC):
 
     @staticmethod
     def isPublicChat(message: Message) -> bool:
-        return True if message.chat.type == 'group' else False
+        return False if message.chat.type == 'private' else True
 
     @staticmethod
     def generateInlineButtons(buttons: Union[InlineKeyboardButton, Iterable[InlineKeyboardButton]], rowWidth=2) -> InlineKeyboardMarkup:

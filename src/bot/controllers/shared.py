@@ -10,6 +10,8 @@ class CommonCommandsController(BaseController):
     def initialize(self) -> None:
         @self._bot.message_handler(['help', 'start'])
         def helpCommand(message: Message):
+            if self.isPublicChat(message):
+                return
 
             baseCommands = (
                 "/reg - регистрация нового пользователя",

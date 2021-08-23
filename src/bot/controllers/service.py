@@ -10,6 +10,9 @@ class ServiceCommandsController(BaseController):
     def initialize(self) -> None:
         @self._bot.message_handler(['userid'])
         def userIdCommand(message: Message) -> None:
+            if self.isPublicChat(message):
+                return
+
             self._bot.reply_to(message, f'Ваш Id: {message.from_user.id}')
 
     def registerBotCommands(self) -> None:
