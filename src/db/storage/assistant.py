@@ -2,6 +2,7 @@
 from typing import Iterable, Union, List
 from sqlalchemy.exc import OperationalError, DatabaseError
 from sqlalchemy.engine.row import Row
+from sqlalchemy.sql.expression import label
 from ..context import AssistantDbContext
 from ..storage.base import BaseStorage, dbLog
 from ..storage.chat import *
@@ -106,7 +107,7 @@ class TaskStorage():
             TaskModel.id,
             TaskModel.descr,
             TaskModel.status,
-            TaskModel.modDate.label('orderDate'),
+            TaskModel.created.label('orderDate'),
             TaskModel.operatorOrgId.label('operatorOrgId'),
             TaskModel.serviceDescr,
             DeviceModel.hid,

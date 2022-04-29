@@ -17,13 +17,14 @@ class CommonCommandsController(BaseController):
                 "/reg - регистрация нового пользователя",
                 "/userid - id пользователя",
                 "/tasks - заявки",
-                "/cancel - отмена текущей команды"
+                "/cancel - отмена текущей команды",
+                "/subscribe - подписка на рассылку",
+                "/unsubscribe - отписаться от рассылки",
+
             )
 
             adminCommands = (
-                "/subscribe - подписка на рассылку",
-                "/unsubscribe - отписаться от рассылки",
-                "/purgeusr - удалить заблокированных пользователей"
+                "/purgeusr - удалить заблокированных пользователей",
             )
 
             result = "\n".join(baseCommands) + "\n" + "\n".join(adminCommands) if UserStorage.isAdmin(

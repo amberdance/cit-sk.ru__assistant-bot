@@ -1,3 +1,4 @@
+import logging
 import re
 from sqlalchemy.exc import IntegrityError
 from telebot.types import CallbackQuery
@@ -47,7 +48,7 @@ class ChatUserHandler:
 
             if(bool(organizationList) is False):
                 bot.send_message(
-                    message.chat.id, f'Пользователь с логином <b>{email}</b> не найден, попробуйте другой', parse_mode="html")
+                    message.chat.id, f'Пользователь с логином <b>{email}</b> не найден.', parse_mode="html")
 
                 return bot.register_next_step_handler(message, stepTwo)
 
@@ -70,8 +71,10 @@ class ChatUserHandler:
         # subscribe command handler
         @bot.message_handler(["subscribe", "unsubscribe"])
         def subscribtionCommand(message: Message) -> None:
+
             if BaseController.isPublicChat(message):
                 return
+
             value = True if message.text == "/subscribe" else False
 
             __setUserSubscribtion(message.chat.id, value)
@@ -104,6 +107,9 @@ class ChatUserHandler:
                         "email": user.email,
                     })
 
+                    logging.getLogger('Application').info(
+                        f"User registered: {user.email}")
+
                     bot.send_message(
                         chatId, f"{user.username}, регистрация выполнена")
 
@@ -129,8 +135,8 @@ class ChatUserHandler:
             text = "подписались на рассылку" if value is True else "отписались от рассылки"
 
             try:
-                if not UserStorage.isAdmin(chatId):
-                    return
+                # if not UserStorage.isAdmin(chatId):
+                #     return
 
                 UserStorage.updateByFields(
                     [UserModel.chatId == chatId], {'isSubscriber': value})

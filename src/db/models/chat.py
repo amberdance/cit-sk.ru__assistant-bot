@@ -1,6 +1,6 @@
 from datetime import datetime
 from sqlalchemy.sql import func
-from sqlalchemy import DateTime, Integer, Column, Boolean, VARCHAR
+from sqlalchemy import DateTime, Integer, Column, Boolean, VARCHAR, BigInteger
 from sqlalchemy.ext.declarative import declarative_base
 from ..context import TelegramBotDbContext
 
@@ -18,8 +18,8 @@ class UserModel(Base):
     created: datetime = Column(DateTime(
         timezone=False), server_default=func.now())
     astUserId = Column(Integer, nullable=False, unique=True)
-    chatId: int = Column(Integer, nullable=False)
-    chatUserId: int = Column(Integer, nullable=False)
+    chatId: int = Column(BigInteger, nullable=False)
+    chatUserId: int = Column(BigInteger, nullable=False)
     astOrgId: int = Column(Integer)
     username: str = Column(VARCHAR)
     email: str = Column(VARCHAR, unique=True)

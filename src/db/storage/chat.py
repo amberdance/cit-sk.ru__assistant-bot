@@ -69,7 +69,7 @@ class UserStorage():
         return session.query(UserModel.astUserId).filter(UserModel.chatId == chatId).all()[0]['astUserId']
 
     @staticmethod
-    def isUserRegistered(chatId) -> bool:
+    def isUserRegistered(chatId: int) -> bool:
         return bool(UserStorage.getFields(UserModel.id, filter=[UserModel.chatId == chatId]))
 
     @staticmethod
