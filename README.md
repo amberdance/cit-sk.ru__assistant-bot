@@ -1,1 +1,2 @@
-# telegram bot, citsk 
+# Assistant Telegram bot
+# http://lk.ast.stavregion.ru
