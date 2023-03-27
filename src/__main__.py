@@ -4,7 +4,7 @@ from config import DEBUG_MODE
 import bot
 
 
-if __name__ == "__main__":
+def setup():
     applicationLog = createLogger('Application', 'app.log')
 
     logLevel = logging.DEBUG if DEBUG_MODE else logging.ERROR
@@ -20,9 +20,12 @@ if __name__ == "__main__":
 
         else:
             createLogger('aiohttp.access', 'access.log')
-
             bot.WebhookBot(botLoggingLevel=logLevel,
                            httpServerLoggingLevel=logLevel)
 
     except Exception as error:
         applicationLog.exception(error)
+
+
+if __name__ == "__main__":
+    setup()

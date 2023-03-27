@@ -4,7 +4,6 @@ from sqlalchemy.orm.session import Session
 
 
 class DbContextBase:
-
     __engine: Engine = None
     __connection: Connection = None
     __session: Session = None
